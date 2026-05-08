@@ -92,8 +92,8 @@ Walk through this exactly once. Steps 6+ become your daily workflow.
 ### 1 · Clone + install
 
 ```bash
-git clone https://github.com/Moonkeemoo/shipship.git
-cd shipship
+git clone https://github.com/Moonkeemoo/Shadow-fleet-tracker-.git
+cd Shadow-fleet-tracker-
 bun install
 ```
 
