@@ -1,3 +1,5 @@
+<img width="2549" height="1197" alt="Screenshot 2026-05-08 at 10 11 00" src="https://github.com/user-attachments/assets/e845451a-e613-4fa3-8ef3-38dc472369c2" />
+
 # Shadow Fleet Tracker
 
 A read-only OSINT aggregator focused on Russia-related shadow-fleet maritime activity.
