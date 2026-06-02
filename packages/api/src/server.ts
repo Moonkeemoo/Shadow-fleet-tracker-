@@ -641,97 +641,60 @@ async function handleVesselOwnership(imoStr: string): Promise<Response> {
   const imo = parseInt(imoStr, 10);
   if (!Number.isFinite(imo)) return jsonResponse({ error: "invalid_imo" }, { status: 400 });
 
-  // 1. Find the seed entity for this IMO (might be multiple if listed in multiple datasets)
-  const seedRows = await sql`
-    SELECT id, schema_type, caption, countries, datasets, url
-    FROM entities
-    WHERE imo = ${imo}
-    LIMIT 5
+  const MAX_DEPTH = 4;
+  const MAX_NODES = 80;
+
+  // Reachable-neighbourhood in ONE round-trip via a recursive CTE (was an
+  // iterative BFS issuing up to MAX_DEPTH+1 sequential queries). The CTE walks
+  // entity_relations in both directions up to MAX_DEPTH hops from the seed
+  // entities for this IMO, keeps each node's MIN depth, and caps at MAX_NODES
+  // ordered by depth (closest first). Returns the node set with full details.
+  const nodes = await sql`
+    WITH RECURSIVE seeds AS (
+      SELECT id FROM entities WHERE imo = ${imo} LIMIT 5
+    ),
+    reach AS (
+      SELECT id, 0 AS depth FROM seeds
+      UNION
+      SELECT CASE WHEN r.src_id = rc.id THEN r.dst_id ELSE r.src_id END, rc.depth + 1
+      FROM reach rc
+      JOIN entity_relations r ON (r.src_id = rc.id OR r.dst_id = rc.id)
+      WHERE rc.depth < ${MAX_DEPTH}
+    ),
+    node_depth AS (
+      SELECT id, MIN(depth) AS depth FROM reach GROUP BY id
+    )
+    SELECT e.id, nd.depth, e.schema_type, e.caption, e.countries, e.datasets, e.url, e.imo
+    FROM node_depth nd
+    JOIN entities e ON e.id = nd.id
+    ORDER BY nd.depth, e.id
+    LIMIT ${MAX_NODES}
   `;
-  if (seedRows.length === 0) {
+
+  if (nodes.length === 0) {
     return jsonResponse({ imo, found: false, nodes: [], edges: [] });
   }
 
-  // 2. BFS traversal
-  const MAX_DEPTH = 4;
-  const MAX_NODES = 80;
-  const visited = new Map<string, { depth: number; entity: Record<string, unknown> }>();
-  const edges: Array<Record<string, unknown>> = [];
+  // All relations whose BOTH endpoints are within the node set — the complete
+  // induced subgraph (a strict superset of the old BFS, which missed
+  // leaf-to-leaf edges at the depth frontier).
+  const nodeIds = nodes.map((n) => n.id as string);
+  const edges = await sql`
+    SELECT id AS rel_id, rel_type, src_id, dst_id, role, percentage, start_date, end_date
+    FROM entity_relations
+    WHERE src_id = ANY(${nodeIds}::text[]) AND dst_id = ANY(${nodeIds}::text[])
+  `;
 
-  for (const seed of seedRows) {
-    visited.set(seed.id as string, { depth: 0, entity: seed });
-  }
-
-  let frontier = seedRows.map((r) => ({ id: r.id as string, depth: 0 }));
-
-  while (frontier.length > 0 && visited.size < MAX_NODES) {
-    const ids = frontier.map((f) => f.id);
-    const nextDepth = (frontier[0]?.depth ?? 0) + 1;
-    if (nextDepth > MAX_DEPTH) break;
-
-    // Find all relations where any frontier node is src or dst
-    const relRows = await sql`
-      SELECT r.id as rel_id, r.rel_type, r.src_id, r.dst_id, r.role, r.percentage, r.start_date, r.end_date,
-             es.id as src_id_e, es.schema_type as src_schema, es.caption as src_caption, es.countries as src_countries, es.datasets as src_datasets, es.url as src_url, es.imo as src_imo,
-             ed.id as dst_id_e, ed.schema_type as dst_schema, ed.caption as dst_caption, ed.countries as dst_countries, ed.datasets as dst_datasets, ed.url as dst_url, ed.imo as dst_imo
-      FROM entity_relations r
-      LEFT JOIN entities es ON es.id = r.src_id
-      LEFT JOIN entities ed ON ed.id = r.dst_id
-      WHERE r.src_id = ANY(${ids}::text[]) OR r.dst_id = ANY(${ids}::text[])
-      LIMIT 500
-    `;
-
-    const next: Array<{ id: string; depth: number }> = [];
-    for (const r of relRows) {
-      const srcId = r.src_id as string;
-      const dstId = r.dst_id as string;
-      edges.push({
-        rel_id: r.rel_id,
-        rel_type: r.rel_type,
-        src_id: srcId,
-        dst_id: dstId,
-        role: r.role,
-        percentage: r.percentage,
-        start_date: r.start_date,
-        end_date: r.end_date,
-      });
-
-      const otherId = ids.includes(srcId) ? dstId : srcId;
-      if (otherId && !visited.has(otherId)) {
-        const otherEntity = ids.includes(srcId)
-          ? { id: r.dst_id_e, schema_type: r.dst_schema, caption: r.dst_caption, countries: r.dst_countries, datasets: r.dst_datasets, url: r.dst_url, imo: r.dst_imo }
-          : { id: r.src_id_e, schema_type: r.src_schema, caption: r.src_caption, countries: r.src_countries, datasets: r.src_datasets, url: r.src_url, imo: r.src_imo };
-        if (otherEntity.id) {
-          visited.set(otherId, { depth: nextDepth, entity: otherEntity });
-          next.push({ id: otherId, depth: nextDepth });
-          if (visited.size >= MAX_NODES) break;
-        }
-      }
-    }
-
-    frontier = next;
-  }
-
-  // Dedupe edges by rel_id
-  const seenEdge = new Set<string>();
-  const uniqueEdges = edges.filter((e) => {
-    const id = String(e.rel_id);
-    if (seenEdge.has(id)) return false;
-    seenEdge.add(id);
-    return true;
-  });
-
-  const nodes = [...visited.entries()].map(([id, v]) => ({ id, depth: v.depth, ...v.entity }));
-
+  const seedCount = nodes.filter((n) => Number(n.depth) === 0).length;
   return jsonResponse({
     imo,
     found: true,
-    seed_count: seedRows.length,
-    max_depth_reached: Math.max(...nodes.map((n) => n.depth)),
+    seed_count: seedCount,
+    max_depth_reached: nodes.reduce((m, n) => Math.max(m, Number(n.depth)), 0),
     node_count: nodes.length,
-    edge_count: uniqueEdges.length,
+    edge_count: edges.length,
     nodes,
-    edges: uniqueEdges,
+    edges,
   });
 }
 
