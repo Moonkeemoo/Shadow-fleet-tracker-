@@ -922,8 +922,16 @@
         <span class="chip layer-chip active" data-layer="sts">STS</span>
         <span class="chip layer-chip active" data-layer="clean">Clean</span>
       </div>
+      <span class="filter-label">Risk ≥</span>
+      <div class="chip-group">
+        <span class="chip risk-chip active" data-minrisk="0">all</span>
+        <span class="chip risk-chip" data-minrisk="30">30</span>
+        <span class="chip risk-chip" data-minrisk="60">60</span>
+        <span class="chip risk-chip" data-minrisk="80">80</span>
+      </div>
+      <button id="export-btn" class="chip" title="Download the currently filtered sanctioned vessels as CSV" style="cursor:pointer;">⬇ CSV</button>
       <div id="entity-search-box">
-        <input id="entity-search-input" type="text" placeholder="Search owners, companies, persons (/) " autocomplete="off" />
+        <input id="entity-search-input" type="text" placeholder="Search vessels, owners, persons (/) " autocomplete="off" />
         <div id="entity-search-results"></div>
       </div>
     </div>
@@ -979,6 +987,8 @@
     let selectedImo = null;
     let activeFilter = "all";
     let activeRange = "24h";
+    let minRisk = 0;                 // risk-score floor for the map (UX filter)
+    let currentVessels = [];         // last sanctioned set (for vessel name/IMO search)
     const layerVisible = { zones: true, sts: true, clean: true };
 
     // -------- Helpers
@@ -1041,6 +1051,8 @@
 
     // -------- Vessels loading
     async function loadVessels() {
+      const refreshEl = document.getElementById("stat-refresh");
+      if (refreshEl) { refreshEl.textContent = "loading…"; refreshEl.style.opacity = "0.6"; }
       try {
         const params = new URLSearchParams();
         if (activeFilter !== "all") params.set("lists", activeFilter);
@@ -1051,6 +1063,7 @@
         ]);
         const all = await allRes.json();
         const sanc = await sancRes.json();
+        currentVessels = sanc.vessels;  // keep for vessel name/IMO search
 
         const sancImos = new Set(sanc.vessels.map(v => v.imo));
 
@@ -1067,8 +1080,9 @@
 
         vesselsLayer.clearLayers();
         vesselMarkers.clear();
-        document.getElementById("empty-overlay").style.display = sanc.count === 0 ? "block" : "none";
+        let shown = 0;
         for (const v of sanc.vessels) {
+          if (minRisk > 0 && Number(v.risk_score || 0) < minRisk) continue;  // risk-floor UX filter
           const lat = Number(v.lat), lon = Number(v.lon);
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
           const heading = v.heading != null ? Number(v.heading) : (v.cog != null ? Number(v.cog) : 0);
@@ -1076,12 +1090,17 @@
           const m = L.marker([lat, lon], { icon: tankerIcon(heading, isSelected, v.risk_bucket), riseOnHover: true }).addTo(vesselsLayer);
           m.on("click", () => openVessel(v.imo));
           vesselMarkers.set(v.imo, m);
+          shown++;
         }
+        document.getElementById("empty-overlay").style.display = shown === 0 ? "block" : "none";
 
-        document.getElementById("stat-matched").textContent = sanc.count;
+        document.getElementById("stat-matched").textContent = minRisk > 0 ? `${shown}/${sanc.count}` : sanc.count;
         document.getElementById("stat-visible").textContent = all.count;
-        document.getElementById("stat-refresh").textContent = new Date().toLocaleTimeString();
-      } catch (err) { console.error("loadVessels failed", err); }
+        if (refreshEl) { refreshEl.textContent = new Date().toLocaleTimeString(); refreshEl.style.opacity = "1"; }
+      } catch (err) {
+        console.error("loadVessels failed", err);
+        if (refreshEl) { refreshEl.textContent = "load failed ⚠"; refreshEl.style.opacity = "1"; refreshEl.style.color = "var(--c-red)"; }
+      }
     }
     async function loadStats() {
       try {
@@ -1193,6 +1212,32 @@
       else map.removeLayer(layer);
     }
 
+    // -------- Risk-floor chips
+    document.querySelectorAll(".risk-chip").forEach(el => {
+      el.addEventListener("click", () => {
+        document.querySelectorAll(".risk-chip").forEach(e => e.classList.remove("active"));
+        el.classList.add("active");
+        minRisk = Number(el.dataset.minrisk) || 0;
+        loadVessels();
+      });
+    });
+
+    // -------- CSV export (current range + list filter)
+    document.getElementById("export-btn").addEventListener("click", () => {
+      const p = new URLSearchParams();
+      if (activeFilter !== "all") p.set("lists", activeFilter);
+      p.set("range", activeRange);
+      p.set("format", "csv");
+      window.open(`/api/sanctioned-active?${p.toString()}`, "_blank");
+    });
+
+    // Fly the map to a vessel and open its panel.
+    function flyToVessel(v) {
+      const lat = Number(v.lat), lon = Number(v.lon);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) map.flyTo([lat, lon], Math.max(map.getZoom(), 7), { duration: 0.6 });
+      if (v.imo) openVessel(Number(v.imo));
+    }
+
     // -------- Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
@@ -1218,18 +1263,40 @@
       clearTimeout(searchTimer);
       const q = searchInput.value.trim();
       if (q.length < 2) { searchResults.classList.remove("open"); return; }
+      // Local vessel matches (name / IMO) from the currently-loaded set — instant, no round-trip.
+      const ql = q.toLowerCase();
+      const vesselHits = currentVessels.filter(v =>
+        (v.name && String(v.name).toLowerCase().includes(ql)) || (v.imo && String(v.imo).includes(q))
+      ).slice(0, 6);
+      const vesselHtml = vesselHits.map((v, i) => `
+        <div class="res" data-vidx="${i}">
+          <div><span class="name">${escapeHtml(v.name || "—")}</span> <span class="badge" style="background:#ff4757;color:#fff;">Vessel</span></div>
+          <div class="sub">IMO ${escapeHtml(v.imo)} · risk ${v.risk_score ?? "—"} · ${escapeHtml((v.flag||"").toUpperCase())}</div>
+        </div>`).join("");
+
       searchTimer = setTimeout(async () => {
-        const res = await fetch(`/api/entity-search?q=${encodeURIComponent(q)}&min_vessels=1`);
-        const data = await res.json();
-        if (data.results.length === 0) {
-          searchResults.innerHTML = '<div class="res" style="cursor: default; color: var(--text-2);">No matching owners</div>';
-        } else {
-          searchResults.innerHTML = data.results.map(r => `
+        let ownerHtml = "";
+        try {
+          const res = await fetch(`/api/entity-search?q=${encodeURIComponent(q)}&min_vessels=1`);
+          const data = await res.json();
+          ownerHtml = (data.results || []).map(r => `
             <div class="res" data-id="${escapeHtml(r.id)}">
               <div><span class="name">${escapeHtml(r.caption)}</span> <span class="badge">${escapeHtml(r.schema_type)}</span></div>
               <div class="sub">${(r.countries||[]).map(c => c.toUpperCase()).join(", ")} · ${r.vessels_owned} vessels</div>
-            </div>
-          `).join("");
+            </div>`).join("");
+        } catch (err) { console.error("entity-search failed", err); }
+
+        if (!vesselHtml && !ownerHtml) {
+          searchResults.innerHTML = '<div class="res" style="cursor: default; color: var(--text-2);">No matching vessels or owners</div>';
+        } else {
+          searchResults.innerHTML = vesselHtml + ownerHtml;
+          searchResults.querySelectorAll(".res[data-vidx]").forEach(el => {
+            el.addEventListener("click", () => {
+              flyToVessel(vesselHits[Number(el.dataset.vidx)]);
+              searchResults.classList.remove("open");
+              searchInput.value = "";
+            });
+          });
           searchResults.querySelectorAll(".res[data-id]").forEach(el => {
             el.addEventListener("click", () => {
               openEntity(el.dataset.id);
