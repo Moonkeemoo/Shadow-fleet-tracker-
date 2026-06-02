@@ -1,0 +1,27 @@
+{
+  "_note": "EXAMPLE SEED — synthetic rows so the pipeline + UI render end-to-end. Replace with verified entries before drawing conclusions.",
+  "_how_to_refresh": "Curate from public investigations: KSE Institute Russian Oil Tracker (https://kse.ua/russian-oil-tracker/), CREA shadow-fleet trackers (https://energyandcleanair.org/), United Against Nuclear Iran tanker tracker (https://www.unitedagainstnucleariran.com/), OCCRP. Map each named vessel to its IMO. Re-run: bun run load-cases <path>.",
+  "_schema": "cases[]: { id(slug), title, summary, source, source_url, published_on(YYYY-MM-DD), tags[], imos[] }",
+  "cases": [
+    {
+      "id": "example-kse-price-cap-evasion",
+      "title": "Example: oil-price-cap evasion via STS off Lakonikos",
+      "summary": "Illustrative seed case linking a tanker to a documented ship-to-ship transfer used to obscure crude origin. Replace with a verified KSE / CREA entry.",
+      "source": "KSE (example seed)",
+      "source_url": "https://kse.ua/russian-oil-tracker/",
+      "published_on": "2026-02-10",
+      "tags": ["shadow-fleet", "oil-price-cap", "sts"],
+      "imos": [9999990]
+    },
+    {
+      "id": "example-uani-dark-voyage",
+      "title": "Example: dark voyage with AIS gaps near Iranian export terminal",
+      "summary": "Illustrative seed case linking a tanker to repeated AIS gaps around a sanctioned export terminal. Replace with a verified UANI / press entry.",
+      "source": "UANI (example seed)",
+      "source_url": "https://www.unitedagainstnucleariran.com/",
+      "published_on": "2026-03-01",
+      "tags": ["shadow-fleet", "iran", "ais-gap"],
+      "imos": [9999991]
+    }
+  ]
+}

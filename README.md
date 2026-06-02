@@ -159,6 +159,27 @@ bun run load-ownership          # OpenSanctions FtM JSON — 321 MB stream, ~20 
 Total downloads ≈ 350 MB. After this you have ~9k unique sanctioned IMOs in the DB,
 deduplicated across 50+ source lists, ready to match against the live AIS feed.
 
+#### Recon sources (optional, operator-curated)
+
+Two more loaders feed the vessel-profile risk factors. Both ship with a synthetic
+example seed so the pipeline + UI render immediately; replace the seeds with live
+exports before drawing conclusions.
+
+```bash
+bun run load-psc                # Port State Control detentions (Paris/Tokyo MoU) → data/psc-detentions.seed.json
+bun run load-cases              # Documented investigations (KSE/CREA/UANI/OCCRP) → data/known-cases.seed.json
+```
+
+- **PSC detentions** — Paris MoU and Tokyo MoU publish public "current detentions"
+  lists (no API). Export to the JSON/CSV shape in `data/psc-detentions.seed.json`
+  and pass the path: `bun run load-psc path/to/export.json`.
+- **Documented cases** — curate vessels named in KSE Russian Oil Tracker / CREA /
+  UANI / OCCRP investigations, mapping each to its IMO. The `known_cases` table
+  also serves as a ground-truth set for tuning the risk weights.
+
+Flag-hopping and hull age need no extra loader — they're derived from the
+OpenSanctions FtM record (`pastFlags`, `buildDate`) already loaded above.
+
 ### 6 · Smoke-test the AIS connection
 
 Sanity check before committing to writing positions to disk. Connects to AISStream,
@@ -297,6 +318,9 @@ These overwrite previous entries (ON CONFLICT UPDATE) so it's safe to run anytim
 | `bun run load-sanctions` | (Re-)load OFAC SDN |
 | `bun run load-opensanctions` | (Re-)load OpenSanctions Maritime |
 | `bun run load-ownership` | (Re-)load OpenSanctions FtM graph |
+| `bun run load-psc` | (Re-)load Port State Control detentions |
+| `bun run load-cases` | (Re-)load documented investigative cases |
+| `bun run test` | Run the risk-scoring unit tests (Node) |
 | `bun run db:up` / `bun run db:down` | Postgres container lifecycle |
 | `bun run db:psql` | Open a `psql` shell into the DB |
 | `bun run db:logs` | Tail Postgres container logs |
@@ -346,6 +370,8 @@ All free, license-compatible with non-commercial / journalistic use:
 | [GDELT 2.0 Doc API](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/) | News article search | Free |
 | [Wikidata SPARQL](https://query.wikidata.org/) | Per-IMO entity / Wikipedia / image | CC0 |
 | [Copernicus Browser](https://browser.dataspace.copernicus.eu/) | Sentinel-1 SAR (deep-link only, no fetch) | ESA terms |
+| [Paris MoU](https://www.parismou.org/detentions-banning/current-detentions) / [Tokyo MoU](https://www.tokyo-mou.org) | Port State Control detentions (operator export → `load-psc`) | Public |
+| [KSE Institute](https://kse.ua/russian-oil-tracker/) · [CREA](https://energyandcleanair.org/) · [UANI](https://www.unitedagainstnucleariran.com/) · OCCRP | Documented shadow-fleet cases (operator-curated → `load-cases`) | Public / research |
 
 ### Data we deliberately do NOT use
 

@@ -1,0 +1,31 @@
+{
+  "_note": "EXAMPLE SEED — synthetic rows so the pipeline + UI render end-to-end. Replace with a live export before drawing conclusions.",
+  "_how_to_refresh": "Paris MoU publishes a public detention list (https://www.parismou.org/detentions-banning/current-detentions) and Tokyo MoU likewise (https://www.tokyo-mou.org). Export to this JSON shape (or CSV — see README) and re-run: bun run load-psc <path>.",
+  "_schema": "detentions[]: { imo, vessel_name, flag(iso2), authority, port, detained_on(YYYY-MM-DD), released_on, deficiencies(int), detention_days(int), source_url }",
+  "detentions": [
+    {
+      "imo": 9999990,
+      "vessel_name": "EXAMPLE TANKER ALPHA",
+      "flag": "pa",
+      "authority": "Paris MoU (example seed)",
+      "port": "Rotterdam, NL",
+      "detained_on": "2026-03-14",
+      "released_on": "2026-03-22",
+      "deficiencies": 19,
+      "detention_days": 8,
+      "source_url": "https://www.parismou.org/detentions-banning/current-detentions"
+    },
+    {
+      "imo": 9999991,
+      "vessel_name": "EXAMPLE TANKER BRAVO",
+      "flag": "cm",
+      "authority": "Tokyo MoU (example seed)",
+      "port": "Singapore",
+      "detained_on": "2026-04-02",
+      "released_on": null,
+      "deficiencies": 27,
+      "detention_days": null,
+      "source_url": "https://www.tokyo-mou.org"
+    }
+  ]
+}

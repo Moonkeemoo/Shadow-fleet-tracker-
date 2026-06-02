@@ -871,7 +871,7 @@
     <div class="top-row">
       <div class="title">
         <h1>⚓ Shadow Fleet — live</h1>
-        <div class="subtitle">Sanctioned tankers · ownership graph · risk scoring · <a href="/digest.html">daily digest</a> · <a href="/methodology.html">methodology</a></div>
+        <div class="subtitle">Sanctioned tankers · ownership graph · risk scoring · <a href="#" onclick="openCasesPanel(); return false;">documented cases</a> · <a href="/digest.html">daily digest</a> · <a href="/methodology.html">methodology</a></div>
       </div>
       <div id="stats">
         <div class="stat">
@@ -1346,6 +1346,39 @@
       return `${y}-${mo}-${d}`;
     }
 
+    // -------- Panel: documented cases browser (recon)
+    async function openCasesPanel() {
+      const panel = document.getElementById("panel");
+      const body = document.getElementById("p-body");
+      panel.classList.add("open");
+      document.getElementById("p-name").textContent = "Documented cases";
+      document.getElementById("p-sub").textContent = "KSE · CREA · UANI · OCCRP";
+      body.innerHTML = `<div class="section"><div class="skeleton lg"></div><div class="skeleton"></div></div>`;
+      try {
+        const res = await fetch("/api/cases");
+        const data = await res.json();
+        const cases = data.results || [];
+        if (cases.length === 0) {
+          body.innerHTML = `<div class="section"><div class="empty-msg">${escapeHtml(data.note || "No documented cases loaded. Run: bun run load-cases")}</div></div>`;
+          return;
+        }
+        let html = `<div class="section"><div style="font-size:11px;color:var(--text-2);margin-bottom:8px;">${cases.length} case${cases.length > 1 ? "s" : ""} · curated investigations linking vessels to documented evasion. Also used as ground truth for calibrating risk weights. <a href="/api/cases?format=csv" style="color:var(--c-blue);text-decoration:none;">↓ CSV</a></div></div>`;
+        for (const c of cases) {
+          const imos = Array.isArray(c.imos) ? c.imos : [];
+          html += `<div class="section">
+            <div style="font-weight:600;font-size:13px;color:var(--text-0);">${escapeHtml(c.title || "—")}</div>
+            <div style="font-size:10px;color:var(--text-2);margin:3px 0;">${escapeHtml(c.source || "")}${c.published_on ? " · " + new Date(c.published_on).toLocaleDateString() : ""}${Array.isArray(c.tags) && c.tags.length ? " · " + c.tags.map(escapeHtml).join(", ") : ""}</div>
+            ${c.summary ? `<div style="font-size:11px;color:var(--text-1);line-height:1.45;margin-bottom:6px;">${escapeHtml(String(c.summary))}</div>` : ""}
+            ${imos.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">${imos.map(i => `<span onclick="openVessel(${i})" style="cursor:pointer;display:inline-block;padding:2px 8px;background:var(--bg-3);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--c-blue);">IMO ${i}</span>`).join("")}</div>` : ""}
+            ${c.source_url ? `<a href="${escapeHtml(c.source_url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--c-blue);text-decoration:none;">↗ source</a>` : ""}
+          </div>`;
+        }
+        body.innerHTML = html;
+      } catch (err) {
+        body.innerHTML = `<div class="section"><div class="empty-msg">Failed to load cases.</div></div>`;
+      }
+    }
+
     function renderVesselPanel(data, ownership, portCalls) {
       const v = data.vessel;
       document.getElementById("p-name").textContent = v.name ?? "(no name)";
@@ -1390,6 +1423,36 @@
         </div>`;
       }
 
+      // Port State Control detentions (recon source: Paris/Tokyo MoU)
+      const psc = data.psc || [];
+      if (psc.length > 0) {
+        html += `<div class="section" style="border-left: 3px solid var(--warn);">
+          <h3>⚓ Port State Control detentions · ${psc.length}</h3>
+          <div style="font-size: 11px; color: var(--c-muted); margin-bottom: 6px;">Substandard-vessel detentions — a strong, independent shadow-fleet signal.</div>
+          ${psc.map(d => `
+            <div class="gap-item" style="border-left-color: var(--warn);">
+              <div><span class="duration" style="color: var(--warn);">${escapeHtml(d.authority || "—")}</span>${d.port ? " · " + escapeHtml(d.port) : ""}</div>
+              <div class="gap-time">${d.detained_on ? new Date(d.detained_on).toLocaleDateString() : "—"}${d.released_on ? " → " + new Date(d.released_on).toLocaleDateString() : " · ongoing"}${d.deficiencies != null ? " · " + d.deficiencies + " deficiencies" : ""}</div>
+              ${d.source_url ? `<a href="${escapeHtml(d.source_url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:4px;font-size:10px;color:var(--c-blue);text-decoration:none;">↗ source</a>` : ""}
+            </div>`).join("")}
+        </div>`;
+      }
+
+      // Documented cases (recon source: KSE / CREA / UANI / OCCRP)
+      const vcases = data.cases || [];
+      if (vcases.length > 0) {
+        html += `<div class="section" style="background: linear-gradient(180deg, rgba(255,77,106,0.08), transparent); border-left: 3px solid var(--c-red);">
+          <h3>📰 Documented cases · ${vcases.length}</h3>
+          ${vcases.map(c => `
+            <div style="margin-bottom: 8px; padding: 8px 10px; background: var(--bg-2); border-radius: 4px; border-left: 2px solid var(--c-red);">
+              <div style="font-weight: 600; font-size: 12px; color: var(--text-0);">${escapeHtml(c.title || "—")}</div>
+              <div style="font-size: 10px; color: var(--text-2); margin: 2px 0;">${escapeHtml(c.source || "")}${c.published_on ? " · " + new Date(c.published_on).toLocaleDateString() : ""}</div>
+              ${c.summary ? `<div style="font-size: 11px; color: var(--text-1); line-height: 1.45;">${escapeHtml(String(c.summary).slice(0, 300))}</div>` : ""}
+              ${c.source_url ? `<a href="${escapeHtml(c.source_url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:4px;font-size:10px;color:var(--c-blue);text-decoration:none;">↗ ${escapeHtml(c.source || "source")}</a>` : ""}
+            </div>`).join("")}
+        </div>`;
+      }
+
       // Vessel info — AIS + FtM enrichment
       const pastFlags = Array.isArray(v.past_flags) ? v.past_flags : [];
       const previousNames = Array.isArray(v.previous_names) ? v.previous_names : [];
@@ -1410,6 +1473,20 @@
         ${v.ftm_url ? `<div class="row"><span class="label">FtM record</span><span class="value"><a href="${escapeHtml(v.ftm_url)}" target="_blank" style="color: var(--accent); text-decoration: none;">↗ open</a></span></div>` : ""}
       </div>`;
 
+      // Profile risk signals (recon: flag-hopping + hull age)
+      const prof = data.profile || {};
+      if (prof.age_years != null || (prof.flag_changes_count || 0) > 0) {
+        const ageWarn = prof.age_years != null && prof.age_years >= 20 ? "alert" : (prof.age_years != null && prof.age_years >= 15 ? "warn" : "");
+        const flagWarn = (prof.flag_changes_count || 0) >= 2 ? "alert" : "";
+        html += `<div class="section">
+          <h3>Profile risk signals</h3>
+          <div class="stat-grid">
+            <div class="stat-cell ${ageWarn}"><div class="l">Hull age</div><div class="v">${prof.age_years != null ? prof.age_years + " y" : "—"}</div></div>
+            <div class="stat-cell ${flagWarn}"><div class="l">Flag changes</div><div class="v">${prof.flag_changes_count || 0}</div></div>
+          </div>
+        </div>`;
+      }
+
       // Ownership graph (vis-network) — placeholder div, instantiate after insert
       html += `<div class="section">
         <h3>Ownership graph${ownership && ownership.found ? ` · ${ownership.node_count} nodes / ${ownership.edge_count} edges` : ""}</h3>
@@ -1427,6 +1504,23 @@
           <div class="stat-cell ${stats.gaps_in_zone > 0 ? 'alert' : ''}"><div class="l">Gaps in zone</div><div class="v">${stats.gaps_in_zone ?? 0}</div></div>
         </div>
       </div>`;
+
+      // Track anomalies (recon: AIS spoofing + zone loitering, derived from our own track)
+      const anomalies = data.anomalies || {};
+      const spoofJumps = anomalies.spoof_jumps || [];
+      const loiterMin = anomalies.loitering_minutes || 0;
+      if (spoofJumps.length > 0 || loiterMin >= 60) {
+        html += `<div class="section" style="border-left: 3px solid var(--c-red);">
+          <h3>🛰️ Track anomalies</h3>
+          ${loiterMin >= 60 ? `<div class="row"><span class="label">Loitering in zone</span><span class="value" style="color: var(--c-red);">${fmtDur(loiterMin)}${anomalies.loitering_zone ? " · " + escapeHtml(anomalies.loitering_zone) : ""}</span></div>` : ""}
+          ${spoofJumps.length > 0 ? `<div class="row"><span class="label">Suspected AIS spoofing</span><span class="value" style="color: var(--c-red);">${spoofJumps.length} jump${spoofJumps.length > 1 ? "s" : ""}</span></div>` : ""}
+          ${spoofJumps.slice(0, 5).map(j => `
+            <div class="gap-item" style="border-left-color: var(--c-red);">
+              <div><span class="duration" style="color: var(--c-red);">${j.distance_nm} nm</span> teleport · ~${j.implied_kn} kn implied</div>
+              <div class="gap-time">${new Date(j.from_ts).toLocaleString()} → ${new Date(j.to_ts).toLocaleString()}</div>
+            </div>`).join("")}
+        </div>`;
+      }
 
       // CARGO + DESTINATION + LOAD STATUS
       const cargo = data.cargo;

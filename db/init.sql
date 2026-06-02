@@ -51,3 +51,37 @@ CREATE TABLE IF NOT EXISTS sanctioned_vessels (
 );
 CREATE INDEX IF NOT EXISTS sanctioned_imo_idx  ON sanctioned_vessels (imo)  WHERE imo  IS NOT NULL;
 CREATE INDEX IF NOT EXISTS sanctioned_mmsi_idx ON sanctioned_vessels (mmsi) WHERE mmsi IS NOT NULL;
+
+-- Port State Control detentions (Paris/Tokyo MoU, ...). See db/migrate-add-recon.sql.
+CREATE TABLE IF NOT EXISTS psc_detentions (
+  id             TEXT PRIMARY KEY,
+  imo            BIGINT,
+  vessel_name    TEXT,
+  flag           TEXT,
+  authority      TEXT NOT NULL,
+  port           TEXT,
+  detained_on    DATE,
+  released_on    DATE,
+  deficiencies   INTEGER,
+  detention_days INTEGER,
+  source_url     TEXT,
+  raw            JSONB,
+  first_seen     TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS psc_imo_idx         ON psc_detentions (imo) WHERE imo IS NOT NULL;
+CREATE INDEX IF NOT EXISTS psc_detained_on_idx ON psc_detentions (detained_on DESC);
+
+-- Documented investigative cases (KSE / CREA / UANI / OCCRP). See db/migrate-add-recon.sql.
+CREATE TABLE IF NOT EXISTS known_cases (
+  id            TEXT PRIMARY KEY,
+  title         TEXT NOT NULL,
+  summary       TEXT,
+  source        TEXT,
+  source_url    TEXT,
+  published_on  DATE,
+  tags          TEXT[],
+  imos          BIGINT[],
+  first_seen    TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS cases_imos_idx   ON known_cases USING GIN (imos);
+CREATE INDEX IF NOT EXISTS cases_source_idx ON known_cases (source);
