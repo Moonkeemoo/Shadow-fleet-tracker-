@@ -372,6 +372,13 @@
         <div><span class="plus">+</span> <span class="key">15</span> if AIS gap inside STS / sanctioned-port zone (24h)</div>
         <div><span class="plus">+</span> <span class="key">5</span> if longest 24h gap &gt;2h</div>
         <div><span class="plus">+</span> <span class="key">10</span> if ownership chain touches sanctioned-state owner (RU / IR / KP / BY / SY / VE)</div>
+        <div style="margin-top: 10px; color: var(--text-2);">Vessel-profile &amp; behaviour signals (recon, v3):</div>
+        <div><span class="plus">+</span> <span class="key">5–15</span> flag-hopping (≥2 prior flags on FtM record, scales to cap)</div>
+        <div><span class="plus">+</span> <span class="key">5–10</span> ageing hull (≥15y / ≥20y)</div>
+        <div><span class="plus">+</span> <span class="key">10</span> Port State Control detention in last 24 months (Paris / Tokyo MoU)</div>
+        <div><span class="plus">+</span> <span class="key">15</span> suspected AIS position spoofing (implausible jump in own track)</div>
+        <div><span class="plus">+</span> <span class="key">10</span> loitering near-stationary inside an STS / sanctioned zone</div>
+        <div><span class="plus">+</span> <span class="key">10</span> named in a documented investigation (KSE / CREA / UANI / OCCRP)</div>
         <div style="margin-top: 10px; color: var(--text-2);">→ capped at 100, bucketed into:</div>
         <div style="margin-top: 6px;">
           <span class="pill risk-l">low &lt; 30</span>
@@ -387,6 +394,18 @@
         for current EU/UK enforcement. The <em>chain-touches-sanctioned-state-owner</em> factor (added in v2) catches vessels
         where the immediate registered owner is not on a list but their parent or beneficial owner is in a sanctioned-state
         jurisdiction — a textbook obfuscation pattern.
+      </p>
+      <h4>Recon signals (v3)</h4>
+      <p>
+        Six signals broaden coverage beyond the sanctions lists into the vessel's own profile and behaviour.
+        <em>Flag-hopping</em> and <em>ageing hull</em> are derived from the OpenSanctions Follow-the-Money record
+        (<code>pastFlags</code>, <code>buildDate</code>) — both are well-established dark-fleet markers.
+        <em>Port State Control detentions</em> come from the public Paris MoU / Tokyo MoU lists (operator-loaded via
+        <code>load-psc</code>) and are an independent measure of substandard tonnage. <em>AIS spoofing</em> and
+        <em>loitering</em> are computed from our own position track — a spoofing jump is an implied speed above 40 kn
+        between consecutive fixes; loitering is ≥60 min near-stationary (&lt;1 kn) inside a suspect zone.
+        <em>Documented cases</em> link a vessel to a published investigation (KSE / CREA / UANI / OCCRP, operator-loaded
+        via <code>load-cases</code>); that table also serves as a ground-truth set for tuning these weights.
       </p>
       <h4>Flag-of-convenience list</h4>
       <p>

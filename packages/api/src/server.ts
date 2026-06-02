@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { sql } from "./db.ts";
 import { logger } from "./log.ts";
 import { SUSPECT_ZONES, findZone } from "./zones.ts";
-import { computeRisk, isFlagOfConvenience, type RiskInputs } from "./risk.ts";
+import { computeRisk, isFlagOfConvenience, flagHopCount, vesselAgeYears, detectSpoofJumps, type RiskInputs, type TrackPoint } from "./risk.ts";
 import { parseDestination, inferLoadStatus, inferCargoType, externalLinks, sentinelVerifyUrl, findNearestPort } from "./ports.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -97,6 +97,54 @@ function maybeCsvOrJson(req: Request | undefined, rows: Array<Record<string, unk
 
 const SANCTIONED_COUNTRIES = ["ru", "ir", "kp", "by", "sy", "ve"];
 
+// Recon tables (psc_detentions, known_cases) are added by db/migrate-add-recon.sql.
+// They may be absent on databases provisioned before that migration, so every
+// query that touches them is guarded by this one-time, cached existence check —
+// keeping the API fully backward-compatible.
+let _reconTables: { psc: boolean; cases: boolean } | null = null;
+async function reconTables(): Promise<{ psc: boolean; cases: boolean }> {
+  if (_reconTables) return _reconTables;
+  if (!sql) return { psc: false, cases: false };
+  try {
+    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases`;
+    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases };
+  } catch {
+    _reconTables = { psc: false, cases: false };
+  }
+  return _reconTables;
+}
+
+// Continuous near-stationary dwell inside a suspect zone (STS / sanctioned-port
+// approach) is the behavioural fingerprint of an STS rendezvous or sanctioned
+// loading. Walks a chronological track and returns the longest such dwell in
+// minutes plus the zone it occurred in.
+function detectLoitering(
+  track: TrackPoint[],
+  maxKn = 1.0,
+): { minutes: number; zone: string | null } {
+  let best = 0;
+  let bestZone: string | null = null;
+  let curStart: number | null = null;
+  let curZone: string | null = null;
+  for (const p of track) {
+    const slow = (p.sog ?? 99) <= maxKn;
+    const zone = slow ? findZone(p.lat, p.lon) : null;
+    const t = new Date(p.ts).getTime();
+    if (zone) {
+      if (curStart === null || curZone !== zone.name) {
+        curStart = t;
+        curZone = zone.name;
+      }
+      const dwell = (t - curStart) / 60000;
+      if (dwell > best) { best = dwell; bestZone = curZone; }
+    } else {
+      curStart = null;
+      curZone = null;
+    }
+  }
+  return { minutes: Math.round(best), zone: bestZone };
+}
+
 // Range parsing — accepts "1h" | "6h" | "24h" | "7d" | "30d" | "all"
 // Returns SQL interval string + bucket size for timeline chart.
 function parseRange(raw: string | null): { interval: string; bucketSec: number; label: string } {
@@ -161,6 +209,15 @@ async function handleSanctionedActive(req?: Request): Promise<Response> {
       JOIN entities eo ON eo.id = r.src_id
       WHERE ev.imo IS NOT NULL AND ev.schema_type = 'Vessel'
       GROUP BY ev.imo
+    ),
+    ent_meta AS (
+      SELECT
+        imo,
+        CASE WHEN jsonb_typeof(properties->'pastFlags') = 'array'
+             THEN jsonb_array_length(properties->'pastFlags') ELSE 0 END AS flag_changes_count,
+        properties->'buildDate'->>0 AS build_date
+      FROM entities
+      WHERE imo IS NOT NULL AND schema_type = 'Vessel'
     )
     SELECT
       v.mmsi::text as mmsi,
@@ -173,11 +230,14 @@ async function handleSanctionedActive(req?: Request): Promise<Response> {
       sa.russia_ukraine_linked,
       sa.flag,
       COALESCE(cc.chain_has_sanctioned_country, FALSE) AS chain_has_sanctioned_country,
+      COALESCE(em.flag_changes_count, 0) AS flag_changes_count,
+      em.build_date,
       lp.lat, lp.lon, lp.sog, lp.cog, lp.heading, lp.nav_status, lp.ts
     FROM vessels v
     JOIN sanction_agg     sa ON v.imo = sa.imo
     JOIN latest_positions lp ON v.mmsi = lp.mmsi
     LEFT JOIN chain_check cc ON cc.imo = v.imo
+    LEFT JOIN ent_meta    em ON em.imo = v.imo
     WHERE v.ship_type BETWEEN 80 AND 89
       ${programLikePatterns.length > 0
         ? sql`AND EXISTS (SELECT 1 FROM unnest(sa.programs) p WHERE p ILIKE ANY(${programLikePatterns}::text[]))`
@@ -186,10 +246,34 @@ async function handleSanctionedActive(req?: Request): Promise<Response> {
     ORDER BY sa.russia_ukraine_linked DESC, lp.ts DESC
   `;
 
-  // Compute basic risk score per vessel (no per-vessel gap query for list view)
+  // Batch the provenance lookups (PSC + cases) once for all visible IMOs,
+  // guarded by table existence so the endpoint works pre-migration.
+  const recon = await reconTables();
+  const imoList = rows.map((r) => Number(r.imo)).filter((n) => Number.isFinite(n) && n > 0);
+  const pscImos = new Set<number>();
+  const caseImos = new Set<number>();
+  if (imoList.length > 0 && recon.psc) {
+    const pr = await sql`
+      SELECT DISTINCT imo FROM psc_detentions
+      WHERE imo = ANY(${imoList}::bigint[])
+        AND detained_on > CURRENT_DATE - INTERVAL '24 months'
+    `;
+    for (const row of pr) pscImos.add(Number(row.imo));
+  }
+  if (imoList.length > 0 && recon.cases) {
+    const cr = await sql`
+      SELECT DISTINCT unnest(imos) AS imo FROM known_cases
+      WHERE imos && ${imoList}::bigint[]
+    `;
+    for (const row of cr) caseImos.add(Number(row.imo));
+  }
+
+  // Compute risk score per vessel (track-derived signals are detail-only).
   const now = Date.now();
+  const nowYear = new Date().getFullYear();
   const enriched = rows.map((r) => {
     const dark_min = r.ts ? (now - new Date(r.ts as string).getTime()) / 60000 : 0;
+    const imoNum = Number(r.imo);
     const inputs: RiskInputs = {
       sanction_count: Array.isArray(r.programs) ? (r.programs as string[]).length : 0,
       russia_ukraine_linked: !!r.russia_ukraine_linked,
@@ -198,6 +282,10 @@ async function handleSanctionedActive(req?: Request): Promise<Response> {
       longest_gap_min_24h: 0, // computed only on detail endpoint
       gap_in_suspect_zone_24h: false,
       chain_has_sanctioned_country: !!r.chain_has_sanctioned_country,
+      flag_changes_count: Number(r.flag_changes_count) || 0,
+      vessel_age_years: vesselAgeYears(r.build_date as string | null, nowYear),
+      psc_detained_recently: pscImos.has(imoNum),
+      in_known_case: caseImos.has(imoNum),
     };
     const risk = computeRisk(inputs);
     return { ...r, risk_score: risk.score, risk_bucket: risk.bucket };
@@ -395,6 +483,45 @@ async function handleVesselDetail(imoStr: string, req?: Request): Promise<Respon
   `;
   const chainHit = !!(chainCheck[0]?.hit);
 
+  // --- recon signals -------------------------------------------------------
+  // Behaviour (from our own AIS track): position spoofing + zone loitering.
+  const trackPoints: TrackPoint[] = positions.map((p) => ({
+    lat: p.lat as number,
+    lon: p.lon as number,
+    ts: p.ts as string,
+    sog: (p.sog as number | null) ?? null,
+  }));
+  const spoofJumps = detectSpoofJumps(trackPoints);
+  const loiter = detectLoitering(trackPoints);
+  const loiteringInZone = loiter.minutes >= 60;
+
+  // Vessel profile (from FtM enrichment already on the row).
+  const flagChangesCount = flagHopCount(vessel.past_flags);
+  const ageYears = vesselAgeYears(vessel.build_date as string | null, new Date().getFullYear());
+
+  // Provenance (guarded — tables may be absent pre-migration).
+  const recon = await reconTables();
+  let pscDetentions: Array<Record<string, unknown>> = [];
+  let knownCases: Array<Record<string, unknown>> = [];
+  if (recon.psc) {
+    pscDetentions = await sql`
+      SELECT vessel_name, flag, authority, port, detained_on, released_on, deficiencies, detention_days, source_url
+      FROM psc_detentions WHERE imo = ${imo}
+      ORDER BY detained_on DESC NULLS LAST LIMIT 20
+    `;
+  }
+  if (recon.cases) {
+    knownCases = await sql`
+      SELECT id, title, summary, source, source_url, published_on, tags
+      FROM known_cases WHERE ${imo}::bigint = ANY(imos)
+      ORDER BY published_on DESC NULLS LAST LIMIT 20
+    `;
+  }
+  const pscDetainedRecently = pscDetentions.some((d) => {
+    const on = d.detained_on ? new Date(d.detained_on as string).getTime() : 0;
+    return on > 0 && (Date.now() - on) / (1000 * 60 * 60 * 24) <= 730; // 24 months
+  });
+
   const risk = computeRisk({
     sanction_count,
     russia_ukraine_linked: !!vessel.russia_ukraine_linked,
@@ -403,6 +530,12 @@ async function handleVesselDetail(imoStr: string, req?: Request): Promise<Respon
     longest_gap_min_24h: stats.longest_gap_min,
     gap_in_suspect_zone_24h: stats.gaps_in_zone > 0,
     chain_has_sanctioned_country: chainHit,
+    flag_changes_count: flagChangesCount,
+    vessel_age_years: ageYears,
+    psc_detained_recently: pscDetainedRecently,
+    ais_spoofing_suspected: spoofJumps.length > 0,
+    loitering_in_zone: loiteringInZone,
+    in_known_case: knownCases.length > 0,
   });
 
   // Cargo inference + destination decode + external photo / reference links
@@ -425,6 +558,19 @@ async function handleVesselDetail(imoStr: string, req?: Request): Promise<Respon
       destination: dest,
     },
     external_links: links,
+    // --- recon additions ---
+    profile: {
+      flag_changes_count: flagChangesCount,
+      age_years: ageYears,
+    },
+    anomalies: {
+      spoof_jumps: spoofJumps,
+      loitering_minutes: loiter.minutes,
+      loitering_zone: loiter.zone,
+      loitering_in_zone: loiteringInZone,
+    },
+    psc: pscDetentions,
+    cases: knownCases,
   });
 }
 
@@ -1606,6 +1752,39 @@ async function handleZones(): Promise<Response> {
   return jsonResponse({ count: SUSPECT_ZONES.length, zones: SUSPECT_ZONES });
 }
 
+// Documented investigative cases (KSE / CREA / UANI / OCCRP seed).
+// Optional filters: ?source=KSE  ?tag=sts  ?imo=9999990  ?format=csv
+async function handleCases(req: Request): Promise<Response> {
+  if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
+  const recon = await reconTables();
+  if (!recon.cases) {
+    return jsonResponse({ count: 0, results: [], note: "known_cases table absent — run db/migrate-add-recon.sql then bun run load-cases" });
+  }
+  const url = new URL(req.url);
+  const source = url.searchParams.get("source");
+  const tag = url.searchParams.get("tag");
+  const imo = parseInt(url.searchParams.get("imo") ?? "", 10);
+
+  const rows = await sql`
+    SELECT id, title, summary, source, source_url, published_on, tags, imos,
+           COALESCE(array_length(imos, 1), 0) AS vessel_count
+    FROM known_cases
+    WHERE TRUE
+      ${source ? sql`AND source = ${source}` : sql``}
+      ${tag ? sql`AND ${tag} = ANY(tags)` : sql``}
+      ${Number.isFinite(imo) ? sql`AND ${imo}::bigint = ANY(imos)` : sql``}
+    ORDER BY published_on DESC NULLS LAST, title
+    LIMIT 500
+  `;
+
+  if (url.searchParams.get("format")?.toLowerCase() === "csv") {
+    return csvResponse(rows as unknown as Array<Record<string, unknown>>,
+      `cases-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["published_on", "source", "title", "vessel_count", "imos", "tags", "source_url", "summary"]);
+  }
+  return jsonResponse({ count: rows.length, results: rows });
+}
+
 async function handleDigest(): Promise<Response> {
   if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
 
@@ -1675,6 +1854,7 @@ const server = Bun.serve({
       if (url.pathname === "/api/tankers-active")    return await withCache(req, 20_000, () => handleTankersActive());
       if (url.pathname === "/api/stats")             return await withCache(req, 30_000, () => handleStats());
       if (url.pathname === "/api/zones")             return await withCache(req, 600_000, () => handleZones());
+      if (url.pathname === "/api/cases")             return await withCache(req, 300_000, () => handleCases(req));
       if (url.pathname === "/api/digest")            return await withCache(req, 60_000, () => handleDigest());
       if (url.pathname === "/api/timeline")          return await withCache(req, 30_000, () => handleTimeline(req));
       if (url.pathname === "/api/sts-candidates")    return await withCache(req, 30_000, () => handleStsCandidates(req));
