@@ -1452,15 +1452,37 @@ async function handleStsEvents(req: Request): Promise<Response> {
   const minDurationMin = parseFloat(url.searchParams.get("min_duration_min") ?? "10");
 
   const obs = await sql`
-    WITH recent AS (
-      SELECT
+    WITH sanc_imos AS (
+      SELECT DISTINCT imo FROM sanctioned_vessels WHERE imo IS NOT NULL
+    ),
+    recent AS (
+      -- Downsample to one position per vessel per 3-min window: STS events span
+      -- 10+ min, so this preserves detection while cutting the join input by an
+      -- order of magnitude. Sanctioned status is resolved once here (a single
+      -- join), not per candidate pair.
+      SELECT DISTINCT ON (p.mmsi, time_bucket(INTERVAL '180 seconds', p.ts))
         p.mmsi, p.lat, p.lon, COALESCE(p.sog, 0) AS sog, p.ts,
-        v.imo, v.name
+        v.imo, v.name,
+        (si.imo IS NOT NULL) AS is_sanc,
+        -- 0.1° (~6 nm) spatial grid cell — the join key that prunes the pair-space
+        floor(p.lat / 0.1)::int AS gx, floor(p.lon / 0.1)::int AS gy
       FROM positions p
       JOIN vessels v ON v.mmsi = p.mmsi
+      LEFT JOIN sanc_imos si ON si.imo = v.imo
       WHERE p.ts > NOW() - ${sql.unsafe("INTERVAL '" + range.interval + "'")}
         AND v.ship_type BETWEEN 80 AND 89
         AND COALESCE(p.sog, 0) < ${maxKn}
+      ORDER BY p.mmsi, time_bucket(INTERVAL '180 seconds', p.ts), p.ts DESC
+    ),
+    -- Expand each "a" row to its 3×3 cell neighbourhood so the join becomes a
+    -- hash join on (cell) instead of a global cartesian product. A pair within
+    -- max_nm (≤2 nm) is always in the same or an adjacent 0.1° cell, so this is
+    -- exact, not approximate — vessels in different regions are never compared.
+    recent_cells AS (
+      SELECT r.*, r.gx + dx AS cx, r.gy + dy AS cy
+      FROM recent r
+      CROSS JOIN (VALUES (-1),(0),(1)) AS ox(dx)
+      CROSS JOIN (VALUES (-1),(0),(1)) AS oy(dy)
     )
     SELECT
       a.mmsi AS mmsi_a, a.imo::text AS imo_a, a.name AS name_a, a.lat AS lat_a, a.lon AS lon_a, a.sog AS sog_a, a.ts AS ts_a,
@@ -1469,11 +1491,15 @@ async function handleStsEvents(req: Request): Promise<Response> {
         power(a.lat - b.lat, 2) +
         power((a.lon - b.lon) * cos(radians((a.lat + b.lat) / 2.0)), 2)
       ) AS distance_nm,
-      EXISTS(SELECT 1 FROM sanctioned_vessels sv WHERE sv.imo IS NOT NULL AND sv.imo = a.imo) AS sanc_a,
-      EXISTS(SELECT 1 FROM sanctioned_vessels sv WHERE sv.imo IS NOT NULL AND sv.imo = b.imo) AS sanc_b
-    FROM recent a
-    JOIN recent b ON a.mmsi < b.mmsi
+      a.is_sanc AS sanc_a,
+      b.is_sanc AS sanc_b
+    FROM recent_cells a
+    JOIN recent b ON b.gx = a.cx AND b.gy = a.cy
+      AND a.mmsi < b.mmsi
       AND ABS(EXTRACT(EPOCH FROM (a.ts - b.ts))) < 300
+      -- Only rendezvous involving at least one sanctioned vessel matter here;
+      -- this also prunes the dense clean-anchorage noise (Singapore, Fujairah).
+      AND (a.is_sanc OR b.is_sanc)
     WHERE 111.12 * 0.539957 * sqrt(
             power(a.lat - b.lat, 2) +
             power((a.lon - b.lon) * cos(radians((a.lat + b.lat) / 2.0)), 2)
@@ -1597,28 +1623,44 @@ async function handleStsCandidates(req: Request): Promise<Response> {
   const maxKn = parseFloat(url.searchParams.get("max_kn") ?? "2.0");
 
   const rows = await sql`
-    WITH recent AS (
-      SELECT
+    WITH sanc_imos AS (
+      SELECT DISTINCT imo FROM sanctioned_vessels WHERE imo IS NOT NULL
+    ),
+    recent AS (
+      -- One position per vessel per 3-min window + sanctioned status resolved
+      -- once + 0.1° grid cell (see handleStsEvents for the rationale).
+      SELECT DISTINCT ON (p.mmsi, time_bucket(INTERVAL '180 seconds', p.ts))
         p.mmsi, p.lat, p.lon, COALESCE(p.sog, 0) AS sog, p.ts,
-        v.imo, v.name, v.ship_type
+        v.imo, v.name, v.ship_type,
+        (si.imo IS NOT NULL) AS is_sanc,
+        floor(p.lat / 0.1)::int AS gx, floor(p.lon / 0.1)::int AS gy
       FROM positions p
       JOIN vessels v ON v.mmsi = p.mmsi
+      LEFT JOIN sanc_imos si ON si.imo = v.imo
       WHERE p.ts > NOW() - ${sql.unsafe("INTERVAL '" + range.interval + "'")}
         AND v.ship_type BETWEEN 80 AND 89
         AND COALESCE(p.sog, 0) < ${maxKn}
+      ORDER BY p.mmsi, time_bucket(INTERVAL '180 seconds', p.ts), p.ts DESC
+    ),
+    recent_cells AS (
+      SELECT r.*, r.gx + dx AS cx, r.gy + dy AS cy
+      FROM recent r
+      CROSS JOIN (VALUES (-1),(0),(1)) AS ox(dx)
+      CROSS JOIN (VALUES (-1),(0),(1)) AS oy(dy)
     ),
     pairs AS (
       SELECT
-        a.mmsi AS mmsi_a, a.imo::text AS imo_a, a.name AS name_a, a.lat AS lat_a, a.lon AS lon_a, a.sog AS sog_a, a.ts AS ts_a,
-        b.mmsi AS mmsi_b, b.imo::text AS imo_b, b.name AS name_b, b.lat AS lat_b, b.lon AS lon_b, b.sog AS sog_b, b.ts AS ts_b,
+        a.mmsi AS mmsi_a, a.imo::text AS imo_a, a.name AS name_a, a.lat AS lat_a, a.lon AS lon_a, a.sog AS sog_a, a.ts AS ts_a, a.is_sanc AS sanc_a,
+        b.mmsi AS mmsi_b, b.imo::text AS imo_b, b.name AS name_b, b.lat AS lat_b, b.lon AS lon_b, b.sog AS sog_b, b.ts AS ts_b, b.is_sanc AS sanc_b,
         -- simplified equirectangular distance in nm (good enough at <50nm)
         111.12 * 0.539957 * sqrt(
           power(a.lat - b.lat, 2) +
           power((a.lon - b.lon) * cos(radians((a.lat + b.lat) / 2.0)), 2)
         ) AS distance_nm,
         ABS(EXTRACT(EPOCH FROM (a.ts - b.ts))) AS seconds_apart
-      FROM recent a
-      JOIN recent b ON a.mmsi < b.mmsi
+      FROM recent_cells a
+      JOIN recent b ON b.gx = a.cx AND b.gy = a.cy
+        AND a.mmsi < b.mmsi
         AND ABS(EXTRACT(EPOCH FROM (a.ts - b.ts))) < 300
     ),
     proximate AS (
@@ -1626,11 +1668,7 @@ async function handleStsCandidates(req: Request): Promise<Response> {
       WHERE distance_nm < ${maxNm}
     ),
     annotated AS (
-      SELECT
-        p.*,
-        EXISTS(SELECT 1 FROM sanctioned_vessels sv WHERE sv.imo IS NOT NULL AND sv.imo::text = p.imo_a) AS sanc_a,
-        EXISTS(SELECT 1 FROM sanctioned_vessels sv WHERE sv.imo IS NOT NULL AND sv.imo::text = p.imo_b) AS sanc_b
-      FROM proximate p
+      SELECT * FROM proximate
     ),
     deduped AS (
       -- Keep only the most recent observation per vessel pair

@@ -7,6 +7,10 @@ export const sql = env.DATABASE_URL
       transform: { undefined: null },
       max: 10,
       idle_timeout: 30,
+      // Safety net: cap every statement at 30 s server-side. A pathological
+      // query (e.g. an STS self-join on a huge vessel set) then self-aborts
+      // instead of pinning a CPU core and exhausting the connection pool.
+      connection: { statement_timeout: 30000 },
     })
   : null;
 
