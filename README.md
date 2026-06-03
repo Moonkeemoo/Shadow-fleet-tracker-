@@ -112,8 +112,10 @@ Defaults you can leave alone:
 - `DATABASE_URL=postgresql://shadow:shadow_dev@localhost:5433/shadow` — matches the
   docker-compose Postgres on host port **5433** (5432 is often taken on dev machines).
 - `LOG_LEVEL=info`
-- `AIS_BBOXES=[[[-90,-180],[90,180]]]` — global coverage by default. Replace with
-  smaller bboxes if you want regional only (see Configuration table below).
+- `AIS_BBOXES` — defaults to **all shadow-fleet operational regions** (NE Atlantic +
+  North Sea + Baltic + Murmansk · Mediterranean + Black Sea · Red Sea + Persian Gulf +
+  Hormuz + India · Singapore + Malacca), covering every zone in `zones.ts`. Replace
+  with a narrower set or global `[[[-90,-180],[90,180]]]` (see Configuration table below).
 
 ### 3 · Spin up Postgres + TimescaleDB
 
@@ -343,16 +345,19 @@ These overwrite previous entries (ON CONFLICT UPDATE) so it's safe to run anytim
 | `AISSTREAM_KEY` | **required** | Get one at https://aisstream.io |
 | `DATABASE_URL` | `postgresql://shadow:shadow_dev@localhost:5433/shadow` | Matches `docker-compose.yml` |
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
-| `AIS_BBOXES` | `[[[-90,-180],[90,180]]]` | JSON array of `[[SW_lat, SW_lon], [NE_lat, NE_lon]]` boxes. Default = global. |
+| `AIS_BBOXES` | all shadow-fleet regions (4 boxes) | JSON array of `[[SW_lat, SW_lon], [NE_lat, NE_lon]]` boxes. Default covers every zone in `zones.ts` (~55 msg/sec). |
 | `PORT` | `3000` | API + UI server port |
 
-To track only a region, replace `AIS_BBOXES` with one or more bboxes. Example
-(Baltic + Black Sea + Persian Gulf + Singapore Strait — covers main shadow-fleet
-operational areas at ~50 msg/sec instead of global ~150 msg/sec):
+The default tracks **all shadow-fleet operational regions** — every zone in
+`zones.ts` (NE Atlantic + North Sea + Baltic + Murmansk · Mediterranean + Black Sea ·
+Red Sea + Persian Gulf + Hormuz + India · Singapore + Malacca):
 
 ```
-AIS_BBOXES=[[[53,-10],[66,31]],[[30,20],[48,42]],[[20,48],[30,60]],[[-2,98],[8,108]]]
+AIS_BBOXES=[[[53,-12],[71,42]],[[30,-6],[47,42]],[[11,42],[30,71]],[[-3,98],[8,108]]]
 ```
+
+To run lighter, narrow it — e.g. Baltic + North Sea only (`[[[53,-10],[66,31]]]`),
+or go fully global with `[[[-90,-180],[90,180]]]` (~150 msg/sec, more disk).
 
 ### Local-port reference
 
