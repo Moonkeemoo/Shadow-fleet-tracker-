@@ -14,6 +14,7 @@
     "load-crea": "bun run packages/api/src/cli/load-crea.ts",
     "load-psc": "bun run packages/api/src/cli/load-psc.ts",
     "load-cases": "bun run packages/api/src/cli/load-cases.ts",
+    "load-infra": "bun run packages/api/src/cli/load-infra.ts",
     "test": "node --test packages/api/src/*.test.ts",
     "serve": "bun run packages/api/src/server.ts",
     "db:up": "docker compose up -d postgres",
