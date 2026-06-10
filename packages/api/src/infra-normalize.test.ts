@@ -104,3 +104,42 @@ test("non-7-digit IMO becomes null", () => {
   assert.ok(a);
   assert.equal(a.imo, null);
 });
+
+// --- Fix 1: out-of-range coordinate bounds ---
+test("out-of-range lat rejected for infra", () => {
+  assert.equal(normalizeInfra({ ...REFINERY, lat: 999 }), null);
+});
+
+test("out-of-range lon rejected for attack", () => {
+  assert.equal(normalizeAttack({ ...ATTACK, lon: 200 }), null);
+});
+
+// --- Fix 2: impossible calendar date rejected ---
+test("impossible calendar date rejected for attack", () => {
+  assert.equal(normalizeAttack({ ...ATTACK, occurred_on: "2023-13-45" }), null);
+});
+
+// --- Fix 3: string coordinates coerce to number ---
+test("string coordinates coerce to number for infra", () => {
+  const r = normalizeInfra({ ...REFINERY, lat: "54.56", lon: "39.79" });
+  assert.ok(r);
+  assert.equal(r.lat, 54.56);
+});
+
+// --- Fix 4: geometry as array treated as null → pipeline rejected ---
+test("geometry as array treated as null → pipeline rejected", () => {
+  const pipe = {
+    ...REFINERY,
+    id: "bts-2", kind: "pipeline", name: "BTS-2",
+    lat: null, lon: null, commodity: "crude",
+    geometry: [[34.3, 53.2]],
+  };
+  assert.equal(normalizeInfra(pipe), null);
+});
+
+// --- Fix 5: float IMO truncates ---
+test("float IMO truncates to integer", () => {
+  const a = normalizeAttack({ ...ATTACK, imo: 9735335.7 });
+  assert.ok(a);
+  assert.equal(a.imo, 9735335);
+});

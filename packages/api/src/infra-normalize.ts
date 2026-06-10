@@ -56,6 +56,13 @@ function toNum(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Like toNum but rejects values outside [min, max] — used for lat/lon. */
+function toCoord(v: unknown, min: number, max: number): number | null {
+  const n = toNum(v);
+  if (n === null) return null;
+  return n >= min && n <= max ? n : null;
+}
+
 function toUrls(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
   return v.map(String).map((s) => s.trim()).filter((s) => /^https?:\/\//i.test(s));
@@ -70,8 +77,8 @@ export function normalizeInfra(raw: Record<string, unknown>): InfraRow | null {
   const source_urls = toUrls(raw.source_urls);
   if (source_urls.length === 0) return null;
 
-  const lat = toNum(raw.lat);
-  const lon = toNum(raw.lon);
+  const lat = toCoord(raw.lat, -90, 90);
+  const lon = toCoord(raw.lon, -180, 180);
   const geometry =
     raw.geometry && typeof raw.geometry === "object" && !Array.isArray(raw.geometry)
       ? (raw.geometry as Record<string, unknown>)
@@ -113,9 +120,12 @@ export function normalizeAttack(raw: Record<string, unknown>): AttackRow | null 
   const id = toStr(raw.id);
   const occurred_on = toStr(raw.occurred_on);
   if (!id || !occurred_on || !/^\d{4}-\d{2}-\d{2}$/.test(occurred_on)) return null;
+  // Reject impossible calendar dates (e.g. 2023-13-45) via round-trip check.
+  const d = new Date(occurred_on + "T00:00:00Z");
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== occurred_on) return null;
 
-  const lat = toNum(raw.lat);
-  const lon = toNum(raw.lon);
+  const lat = toCoord(raw.lat, -90, 90);
+  const lon = toCoord(raw.lon, -180, 180);
   if (lat === null || lon === null) return null;
 
   const attack_type = toStr(raw.attack_type);
