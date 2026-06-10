@@ -1,11 +1,13 @@
 <img width="2549" height="1197" alt="Screenshot 2026-05-08 at 10 11 00" src="https://github.com/user-attachments/assets/e845451a-e613-4fa3-8ef3-38dc472369c2" />
 
-# Shadow Fleet Tracker
+# OilFront
 
-A read-only OSINT aggregator focused on Russia-related shadow-fleet maritime activity.
-Live AIS feed × public sanctions lists × ownership graph × news → transparent risk score
-per vessel, STS rendezvous detection, port-call inference, and CSV / JSON exports for
-journalism and compliance research.
+**Russia's oil war, mapped** — shadow fleet at sea, oil infrastructure on land, and the
+strikes hitting both. A read-only OSINT aggregator: live AIS feed × public sanctions
+lists × ownership graph × refineries/pipelines/terminals × verified strike and
+tanker-attack datasets × news → transparent risk score per vessel, STS rendezvous
+detection, port-call inference, and CSV / JSON exports for journalism and compliance
+research. (Formerly “Shadow Fleet Tracker”.)
 
 > **What this is.** A research / journalism aid built on free public data sources only.
 > Reproducible methodology, all factors explainable.
@@ -98,8 +100,8 @@ Walk through this exactly once. Steps 6+ become your daily workflow.
 ### 1 · Clone + install
 
 ```bash
-git clone https://github.com/Moonkeemoo/Shadow-fleet-tracker-.git
-cd Shadow-fleet-tracker-
+git clone https://github.com/Moonkeemoo/OilFront.git
+cd OilFront
 bun install
 ```
 
@@ -227,7 +229,7 @@ In a second terminal:
 bun run serve
 ```
 
-Logs `shadow-fleet server up` on port `3000`.
+Logs `oilfront server up` on port `3000`.
 
 ### 9 · Open the dashboard
 

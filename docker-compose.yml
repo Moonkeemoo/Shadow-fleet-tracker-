@@ -1,3 +1,7 @@
+# Project name pinned so renaming the checkout folder never orphans the data
+# volume again (it already happened twice: polyscalp_ and shipship_ volumes).
+name: shadow-fleet-tracker-
+
 services:
   postgres:
     image: timescale/timescaledb:latest-pg16

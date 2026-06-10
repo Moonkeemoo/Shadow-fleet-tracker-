@@ -1175,7 +1175,7 @@ async function handleVesselWiki(imoStr: string): Promise<Response> {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(8000),
-      headers: { "User-Agent": "polyscalp/0.1 (research; non-commercial)" },
+      headers: { "User-Agent": "oilfront/0.1 (research; non-commercial)" },
     });
     if (!res.ok) {
       logger.warn({ event: "wikidata_error", status: res.status, imo }, "Wikidata fetch failed");
@@ -1996,4 +1996,4 @@ const server = Bun.serve({
   },
 });
 
-logger.info({ event: "server_start", port: server.port, webDir: WEB_DIR }, "shadow-fleet server up");
+logger.info({ event: "server_start", port: server.port, webDir: WEB_DIR }, "oilfront server up");
