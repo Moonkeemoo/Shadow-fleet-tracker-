@@ -357,7 +357,7 @@ CREATE TABLE IF NOT EXISTS oil_infra (
   raw              JSONB,
   first_seen       TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS oil_infra_kind_idx ON oil_infra (kind);
+CREATE INDEX IF NOT EXISTS oil_infra_kind_name_idx ON oil_infra (kind, name);
 
 -- Russia-linked attacks on tankers (USV strikes, limpet mines, port strikes,
 -- unexplained explosions). imo links incidents to vessel detail panels.
@@ -444,7 +444,7 @@ async function ensureTable(): Promise<void> {
       raw              JSONB,
       first_seen       TIMESTAMPTZ DEFAULT NOW()
     )`;
-  await sql!`CREATE INDEX IF NOT EXISTS oil_infra_kind_idx ON oil_infra (kind)`;
+  await sql!`CREATE INDEX IF NOT EXISTS oil_infra_kind_name_idx ON oil_infra (kind, name)`;
 }
 
 async function main(): Promise<void> {
