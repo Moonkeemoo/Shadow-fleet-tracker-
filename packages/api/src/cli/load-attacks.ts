@@ -66,7 +66,7 @@ async function main(): Promise<void> {
         ) VALUES (
           ${r.id}, ${r.occurred_on}, ${r.vessel_name}, ${r.imo}, ${r.lat}, ${r.lon},
           ${r.location_precision}, ${r.attack_type}, ${r.summary},
-          ${r.source_urls}::text[], ${JSON.stringify(r.raw)}::jsonb
+          ${r.source_urls}::text[], ${sql.json(r.raw as Parameters<typeof sql.json>[0])}
         )
         ON CONFLICT (id) DO UPDATE SET
           occurred_on = EXCLUDED.occurred_on, vessel_name = EXCLUDED.vessel_name,

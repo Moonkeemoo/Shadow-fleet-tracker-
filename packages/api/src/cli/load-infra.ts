@@ -71,10 +71,10 @@ async function main(): Promise<void> {
           owner, operator, region, status, notes, source_urls, raw
         ) VALUES (
           ${r.id}, ${r.kind}, ${r.name}, ${r.name_local}, ${r.lat}, ${r.lon},
-          ${r.geometry ? JSON.stringify(r.geometry) : null}::jsonb, ${r.commodity},
+          ${r.geometry ? sql.json(r.geometry as Parameters<typeof sql.json>[0]) : null}, ${r.commodity},
           ${r.capacity_mt_yr}, ${r.capacity_bbl_d}, ${r.storage_m3}, ${r.throughput_mt_yr},
           ${r.owner}, ${r.operator}, ${r.region}, ${r.status}, ${r.notes},
-          ${r.source_urls}::text[], ${JSON.stringify(r.raw)}::jsonb
+          ${r.source_urls}::text[], ${sql.json(r.raw as Parameters<typeof sql.json>[0])}
         )
         ON CONFLICT (id) DO UPDATE SET
           kind = EXCLUDED.kind, name = EXCLUDED.name, name_local = EXCLUDED.name_local,
