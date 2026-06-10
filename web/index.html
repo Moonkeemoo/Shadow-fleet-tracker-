@@ -953,7 +953,9 @@
         <div class="li"><span class="swatch" style="background: #ffb84a;"></span> sanctioned visible</div>
         <div class="li"><span class="swatch" style="background: #ff4d6a;"></span> RU / UA subset</div>
         <div class="li"><span class="swatch" style="background: rgba(194,203,224,0.5); border: 1px dashed #c2cbe0;"></span> all tankers (trace)</div>
-        <div class="li"><span class="swatch" style="background: #b56cff;"></span> oil infra</div>
+        <div class="li"><span class="swatch" style="background: #b56cff;"></span> refinery</div>
+        <div class="li"><span class="swatch" style="background: #2bcbba;"></span> depot</div>
+        <div class="li"><span class="swatch" style="background: #54a0ff;"></span> terminal</div>
         <div class="li"><span class="swatch" style="background: #ff4757; border-radius: 0;"></span> tanker attack</div>
       </div>
     </div>
@@ -1229,12 +1231,12 @@
               ? { color: "#7bd5f5", weight: 1.5, opacity: 0.5, dashArray: "6 4" }
               : { color: "#e0a458", weight: 2, opacity: 0.5 };
             const line = L.geoJSON(o.geometry, { style });
-            line.bindTooltip(`${o.name}${o.commodity ? " · " + o.commodity : ""}`, { sticky: true });
+            line.bindTooltip(`${escapeHtml(o.name)}${o.commodity ? " · " + escapeHtml(o.commodity) : ""}`, { sticky: true });
             line.on("click", () => openInfraPanel(o));
             line.addTo(infraLayer);
           } else if (o.lat != null && o.lon != null) {
             const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size) });
-            marker.bindTooltip(`${o.name}${o.capacity_mt_yr ? ` · ${o.capacity_mt_yr} Mt/yr` : ""}`);
+            marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${o.capacity_mt_yr} Mt/yr` : ""}`);
             marker.on("click", () => openInfraPanel(o));
             marker.addTo(infraLayer);
             infraMarkers.push({ marker, kind: o.kind });
@@ -1247,6 +1249,11 @@
       for (const m of infraMarkers) m.marker.setIcon(infraIcon(m.kind, size));
     });
 
+    function fmtDateUTC(d) {
+      if (!d) return "—";
+      return new Date(d).toLocaleDateString(undefined, { timeZone: "UTC" });
+    }
+
     // -------- Attacks layer (Russia-linked tanker incidents)
     async function loadAttacks() {
       try {
@@ -1255,7 +1262,7 @@
         attacksLayer.clearLayers();
         for (const a of (data.results || [])) {
           const marker = L.marker([a.lat, a.lon], { icon: attackIcon() });
-          marker.bindTooltip(`${a.vessel_name || "Unknown vessel"} · ${a.occurred_on ? new Date(a.occurred_on).toLocaleDateString() : "—"}`);
+          marker.bindTooltip(`${escapeHtml(a.vessel_name || "Unknown vessel")} · ${fmtDateUTC(a.occurred_on)}`);
           marker.on("click", () => openAttackPanel(a));
           marker.addTo(attacksLayer);
         }
