@@ -921,6 +921,8 @@
         <span class="chip layer-chip active" data-layer="zones">Zones</span>
         <span class="chip layer-chip active" data-layer="sts">STS</span>
         <span class="chip layer-chip active" data-layer="clean">Clean</span>
+        <span class="chip layer-chip active" data-layer="infra">Infra</span>
+        <span class="chip layer-chip active" data-layer="attacks">Attacks</span>
       </div>
       <span class="filter-label">Risk ≥</span>
       <div class="chip-group">
@@ -951,6 +953,8 @@
         <div class="li"><span class="swatch" style="background: #ffb84a;"></span> sanctioned visible</div>
         <div class="li"><span class="swatch" style="background: #ff4d6a;"></span> RU / UA subset</div>
         <div class="li"><span class="swatch" style="background: rgba(194,203,224,0.5); border: 1px dashed #c2cbe0;"></span> all tankers (trace)</div>
+        <div class="li"><span class="swatch" style="background: #b56cff;"></span> oil infra</div>
+        <div class="li"><span class="swatch" style="background: #ff4757; border-radius: 0;"></span> tanker attack</div>
       </div>
     </div>
     <div id="timeline-svg-wrap">
@@ -978,6 +982,8 @@
     }).addTo(map);
 
     const zonesLayer = L.layerGroup().addTo(map);
+    const infraLayer = L.layerGroup().addTo(map);
+    const attacksLayer = L.layerGroup().addTo(map);
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
     const vesselsLayer = L.layerGroup().addTo(map);
@@ -989,7 +995,7 @@
     let activeRange = "24h";
     let minRisk = 0;                 // risk-score floor for the map (UX filter)
     let currentVessels = [];         // last sanctioned set (for vessel name/IMO search)
-    const layerVisible = { zones: true, sts: true, clean: true };
+    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true };
 
     // -------- Helpers
     function bucketColor(b) {
@@ -1023,6 +1029,39 @@
         </svg>`,
         iconSize: [10, 10],
         iconAnchor: [5, 5],
+      });
+    }
+    // -------- Infra & attack icons
+    const INFRA_COLORS = { refinery: "#b56cff", depot: "#2bcbba", terminal: "#54a0ff" };
+    function infraIconSize() { return map.getZoom() >= 5 ? 18 : 12; }
+    function infraIcon(kind, size) {
+      const c = INFRA_COLORS[kind] || "#8a96aa";
+      let shape;
+      if (kind === "refinery") {
+        // factory: chimney + roofline
+        shape = `<path d="M2 13 L2 6 L4 6 L4 9 L7 7 L7 9 L10 7 L10 13 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      } else if (kind === "depot") {
+        // storage tank: cylinder
+        shape = `<rect x="2.5" y="5" width="7" height="7" rx="1.2" fill="${c}" stroke="#fff" stroke-width="0.5"/><ellipse cx="6" cy="5" rx="3.5" ry="1.4" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      } else {
+        // terminal: diamond
+        shape = `<path d="M6 1.5 L11 7 L6 12.5 L1 7 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      }
+      return L.divIcon({
+        className: "infra-icon",
+        html: `<svg viewBox="0 0 12 14" width="${size}" height="${size}">${shape}</svg>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+    }
+    function attackIcon() {
+      return L.divIcon({
+        className: "attack-icon",
+        html: `<svg viewBox="0 0 14 14" width="16" height="16">
+          <path d="M7 0 L8.6 4.4 L13 3 L9.8 7 L13 11 L8.6 9.6 L7 14 L5.4 9.6 L1 11 L4.2 7 L1 3 L5.4 4.4 Z" fill="#ff4757" stroke="#fff" stroke-width="0.5"/>
+        </svg>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
       });
     }
     function fmt(n, digits = 0) { return (n == null) ? "—" : Number(n).toFixed(digits); }
@@ -1173,6 +1212,56 @@
       } catch (err) { console.error("loadZones failed", err); }
     }
 
+    // -------- Infra layer (refineries / depots / terminals / pipelines)
+    function openInfraPanel(o) { console.log("infra", o.id); }
+    function openAttackPanel(a) { console.log("attack", a.id); }
+    let infraMarkers = []; // { marker, kind } — re-iconed on zoom threshold crossings
+    async function loadInfra() {
+      try {
+        const res = await fetch("/api/infra");
+        const data = await res.json();
+        infraLayer.clearLayers();
+        infraMarkers = [];
+        const size = infraIconSize();
+        for (const o of (data.objects || [])) {
+          if (o.kind === "pipeline" && o.geometry) {
+            const style = o.commodity === "products"
+              ? { color: "#7bd5f5", weight: 1.5, opacity: 0.5, dashArray: "6 4" }
+              : { color: "#e0a458", weight: 2, opacity: 0.5 };
+            const line = L.geoJSON(o.geometry, { style });
+            line.bindTooltip(`${o.name}${o.commodity ? " · " + o.commodity : ""}`, { sticky: true });
+            line.on("click", () => openInfraPanel(o));
+            line.addTo(infraLayer);
+          } else if (o.lat != null && o.lon != null) {
+            const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size) });
+            marker.bindTooltip(`${o.name}${o.capacity_mt_yr ? ` · ${o.capacity_mt_yr} Mt/yr` : ""}`);
+            marker.on("click", () => openInfraPanel(o));
+            marker.addTo(infraLayer);
+            infraMarkers.push({ marker, kind: o.kind });
+          }
+        }
+      } catch (err) { console.error("loadInfra failed", err); }
+    }
+    map.on("zoomend", () => {
+      const size = infraIconSize();
+      for (const m of infraMarkers) m.marker.setIcon(infraIcon(m.kind, size));
+    });
+
+    // -------- Attacks layer (Russia-linked tanker incidents)
+    async function loadAttacks() {
+      try {
+        const res = await fetch("/api/attacks");
+        const data = await res.json();
+        attacksLayer.clearLayers();
+        for (const a of (data.results || [])) {
+          const marker = L.marker([a.lat, a.lon], { icon: attackIcon() });
+          marker.bindTooltip(`${a.vessel_name || "Unknown vessel"} · ${a.occurred_on ? new Date(a.occurred_on).toLocaleDateString() : "—"}`);
+          marker.on("click", () => openAttackPanel(a));
+          marker.addTo(attacksLayer);
+        }
+      } catch (err) { console.error("loadAttacks failed", err); }
+    }
+
     // -------- Filter chips
     document.querySelectorAll(".chip[data-list]").forEach(el => {
       el.addEventListener("click", () => {
@@ -1205,6 +1294,8 @@
         if (k === "zones")  toggleLayer(zonesLayer,  layerVisible.zones);
         if (k === "sts")    toggleLayer(stsLayer,    layerVisible.sts);
         if (k === "clean")  toggleLayer(cleanLayer,  layerVisible.clean);
+        if (k === "infra")   toggleLayer(infraLayer,   layerVisible.infra);
+        if (k === "attacks") toggleLayer(attacksLayer, layerVisible.attacks);
       });
     });
     function toggleLayer(layer, on) {
@@ -2073,10 +2164,13 @@
     loadStats();
     loadTimeline();
     loadSts();
+    loadInfra();
+    loadAttacks();
     setInterval(loadVessels, 15000);
     setInterval(loadStats, 30000);
     setInterval(loadTimeline, 60000);
     setInterval(loadSts, 30000);
+    setInterval(loadAttacks, 600000); // attacks are curated — 10 min is plenty; infra is static, no refresh
   </script>
 </body>
 </html>
