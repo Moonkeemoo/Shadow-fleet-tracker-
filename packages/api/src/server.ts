@@ -103,15 +103,15 @@ const SANCTIONED_COUNTRIES = ["ru", "ir", "kp", "by", "sy", "ve"];
 // They may be absent on databases provisioned before that migration, so every
 // query that touches them is guarded by this one-time, cached existence check —
 // keeping the API fully backward-compatible.
-let _reconTables: { psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean } | null = null;
-async function reconTables(): Promise<{ psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean }> {
+let _reconTables: { psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean } | null = null;
+async function reconTables(): Promise<{ psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean }> {
   if (_reconTables) return _reconTables;
-  if (!sql) return { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false };
+  if (!sql) return { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false };
   try {
-    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases, to_regclass('public.crea_vessels') AS crea, to_regclass('public.oil_infra') AS infra, to_regclass('public.tanker_attacks') AS attacks, to_regclass('public.infra_strikes') AS strikes`;
-    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases, crea: !!r[0]?.crea, infra: !!r[0]?.infra, attacks: !!r[0]?.attacks, strikes: !!r[0]?.strikes };
+    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases, to_regclass('public.crea_vessels') AS crea, to_regclass('public.oil_infra') AS infra, to_regclass('public.tanker_attacks') AS attacks, to_regclass('public.infra_strikes') AS strikes, to_regclass('public.infra_links') AS links`;
+    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases, crea: !!r[0]?.crea, infra: !!r[0]?.infra, attacks: !!r[0]?.attacks, strikes: !!r[0]?.strikes, links: !!r[0]?.links };
   } catch {
-    _reconTables = { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false };
+    _reconTables = { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false };
   }
   return _reconTables;
 }
@@ -568,6 +568,21 @@ async function handleVesselDetail(imoStr: string, req?: Request): Promise<Respon
   const dest = parseDestination(vessel.destination as string | null);
   const links = externalLinks(imo, vessel.name as string | null);
 
+  // Supply chain: if the decoded destination LOCODE matches a curated export
+  // terminal, surface that terminal's pipeline→refinery chain. Graceful empty
+  // when the links table is absent, no terminal carries the locode, or no link
+  // touches it. The terminal `locode` lives in oil_infra.raw (added by the
+  // infra research pass), queried via raw->>'locode'.
+  let supplyChain: SupplyChain[] = [];
+  const destLocode = dest.port?.code ?? dest.destination?.code ?? null;
+  if (destLocode && recon.links && recon.infra) {
+    const termRows = await sql`
+      SELECT id FROM oil_infra WHERE kind = 'terminal' AND raw->>'locode' = ${destLocode} LIMIT 1
+    ` as unknown as Array<{ id: string }>;
+    const termId = termRows[0]?.id;
+    if (termId) supplyChain = await resolveChainsFor(termId);
+  }
+
   return jsonResponse({
     vessel,
     track: positions,
@@ -595,6 +610,7 @@ async function handleVesselDetail(imoStr: string, req?: Request): Promise<Respon
     cases: knownCases,
     attacks: vesselAttacks,
     crea,
+    supply_chain: supplyChain,
   });
 }
 
@@ -1945,6 +1961,67 @@ async function handleStrikeImpact(): Promise<Response> {
   });
 }
 
+// One node in a supply chain — minimal infra detail for the panel chips.
+interface ChainNode { id: string; kind: string; name: string; lat: number | null; lon: number | null; }
+interface SupplyChain {
+  pipeline: ChainNode | null;
+  terminal: ChainNode | null;
+  refineries: ChainNode[];
+  commodity: string | null;
+  source_urls: string[];
+}
+
+// Shared link-resolution for both /api/infra/:id/chain and the vessel-detail
+// supply_chain block. Finds every curated link where `id` is the pipeline, the
+// terminal, or one of the refineries, then resolves each referenced node's
+// detail from oil_infra. Returns [] when the links table is absent or no link
+// touches `id` (graceful — never throws on missing data).
+async function resolveChainsFor(id: string): Promise<SupplyChain[]> {
+  if (!sql) return [];
+  const recon = await reconTables();
+  if (!recon.links) return [];
+  const links = await sql`
+    SELECT pipeline_id, terminal_id, refinery_ids, commodity, source_urls
+    FROM infra_links
+    WHERE pipeline_id = ${id} OR terminal_id = ${id} OR ${id} = ANY(refinery_ids)
+  ` as unknown as Array<{
+    pipeline_id: string; terminal_id: string | null; refinery_ids: string[] | null;
+    commodity: string | null; source_urls: string[] | null;
+  }>;
+  if (links.length === 0) return [];
+
+  // Resolve every referenced node in one round-trip.
+  const ids = new Set<string>();
+  for (const l of links) {
+    ids.add(l.pipeline_id);
+    if (l.terminal_id) ids.add(l.terminal_id);
+    for (const rid of l.refinery_ids ?? []) ids.add(rid);
+  }
+  const nodeRows = recon.infra
+    ? await sql`SELECT id, kind, name, lat, lon FROM oil_infra WHERE id = ANY(${[...ids]}::text[])` as unknown as ChainNode[]
+    : [];
+  const byId = new Map<string, ChainNode>(nodeRows.map((n) => [n.id, n]));
+
+  return links.map((l) => ({
+    pipeline: byId.get(l.pipeline_id) ?? null,
+    terminal: l.terminal_id ? byId.get(l.terminal_id) ?? null : null,
+    refineries: (l.refinery_ids ?? []).map((rid) => byId.get(rid)).filter((n): n is ChainNode => !!n),
+    commodity: l.commodity,
+    source_urls: l.source_urls ?? [],
+  }));
+}
+
+// Supply chain for any infra node (terminal / pipeline / refinery), bidirectional.
+async function handleInfraChain(id: string): Promise<Response> {
+  if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
+  const recon = await reconTables();
+  if (!recon.links) {
+    return jsonResponse({ available: false, chains: [], note: "infra_links table absent — run db/migrate-add-infra-links.sql then bun run load-infra-links" });
+  }
+  const chains = await resolveChainsFor(id);
+  return jsonResponse({ available: true, chains });
+}
+
 async function handleFires(): Promise<Response> {
   const key = process.env.FIRMS_MAP_KEY;
   if (!key) return jsonResponse({ available: false, points: [], facilities: {}, note: "FIRMS_MAP_KEY not set" });
@@ -2062,6 +2139,8 @@ const server = Bun.serve({
       if (entityMatch) return await handleEntityDetail(entityMatch[1]!);
       const ownershipMatch = url.pathname.match(/^\/api\/vessel\/(\d+)\/ownership$/);
       if (ownershipMatch) return await withCache(req, 300_000, () => handleVesselOwnership(ownershipMatch[1]!));
+      const chainMatch = url.pathname.match(/^\/api\/infra\/([A-Za-z0-9_-]+)\/chain$/);
+      if (chainMatch) return await withCache(req, 600_000, () => handleInfraChain(chainMatch[1]!));
       const vesselMatch = url.pathname.match(/^\/api\/vessel\/(\d+)$/);
       if (vesselMatch) return await withCache(req, 30_000, () => handleVesselDetail(vesselMatch[1]!, req));
       return await serveStatic(url.pathname);
