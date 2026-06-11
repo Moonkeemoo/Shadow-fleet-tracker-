@@ -1904,10 +1904,7 @@ async function handleStrikeImpact(): Promise<Response> {
     return jsonResponse({ available: false, struck_30d: 0, struck_90d: 0, strikes_30d: 0, strikes_90d: 0, capacity_struck_90d_mt_yr: 0, total_refining_capacity_mt_yr: 0, pct_capacity_struck_90d: 0 });
   }
   const rows = await sql`
-    WITH struck AS (
-      SELECT DISTINCT infra_id, occurred_on FROM infra_strikes
-    ),
-    refinery_total AS (
+    WITH refinery_total AS (
       SELECT COALESCE(SUM(capacity_mt_yr), 0) AS total
       FROM oil_infra WHERE kind = 'refinery' AND capacity_mt_yr IS NOT NULL
     ),
