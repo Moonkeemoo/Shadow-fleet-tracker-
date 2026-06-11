@@ -104,15 +104,15 @@ const SANCTIONED_COUNTRIES = ["ru", "ir", "kp", "by", "sy", "ve"];
 // They may be absent on databases provisioned before that migration, so every
 // query that touches them is guarded by this one-time, cached existence check —
 // keeping the API fully backward-compatible.
-let _reconTables: { psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean } | null = null;
-async function reconTables(): Promise<{ psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean }> {
+let _reconTables: { psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean; outage: boolean } | null = null;
+async function reconTables(): Promise<{ psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean; outage: boolean }> {
   if (_reconTables) return _reconTables;
-  if (!sql) return { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false };
+  if (!sql) return { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false, outage: false };
   try {
-    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases, to_regclass('public.crea_vessels') AS crea, to_regclass('public.oil_infra') AS infra, to_regclass('public.tanker_attacks') AS attacks, to_regclass('public.infra_strikes') AS strikes, to_regclass('public.infra_links') AS links`;
-    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases, crea: !!r[0]?.crea, infra: !!r[0]?.infra, attacks: !!r[0]?.attacks, strikes: !!r[0]?.strikes, links: !!r[0]?.links };
+    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases, to_regclass('public.crea_vessels') AS crea, to_regclass('public.oil_infra') AS infra, to_regclass('public.tanker_attacks') AS attacks, to_regclass('public.infra_strikes') AS strikes, to_regclass('public.infra_links') AS links, to_regclass('public.refining_outage') AS outage`;
+    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases, crea: !!r[0]?.crea, infra: !!r[0]?.infra, attacks: !!r[0]?.attacks, strikes: !!r[0]?.strikes, links: !!r[0]?.links, outage: !!r[0]?.outage };
   } catch {
-    _reconTables = { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false };
+    _reconTables = { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false, outage: false };
   }
   return _reconTables;
 }
@@ -1908,7 +1908,7 @@ async function handleInfraStrikes(req: Request): Promise<Response> {
   const vf = verifiedParam === "true" ? true : verifiedParam === "false" ? false : null;
 
   const rows = await sql`
-    SELECT id, infra_id, occurred_on, weapon, summary, source_urls, origin, verified
+    SELECT id, infra_id, occurred_on, weapon, COALESCE(severity, 'unknown') AS severity, summary, source_urls, origin, verified
     FROM infra_strikes
     WHERE TRUE
       ${infraId ? sql`AND infra_id = ${infraId}` : sql``}
@@ -1989,6 +1989,10 @@ async function handleImpact(): Promise<Response> {
         capacity_struck_90d_mt_yr: 0, total_refining_capacity_mt_yr: 0,
         pct_capacity_struck_90d: 0, corroborated: 0,
       },
+      severity_totals: { minor: 0, moderate: 0, major: 0, unknown: 0 },
+      major_facilities: 0,
+      by_severity_monthly: [],
+      outage_estimates: [],
       monthly: [], top_facilities: [], by_weapon: [], by_region: [],
     });
   }
@@ -2013,12 +2017,26 @@ async function handleImpact(): Promise<Response> {
       (SELECT COUNT(DISTINCT infra_id) FROM infra_strikes) AS struck_all,
       (SELECT COUNT(DISTINCT infra_id) FROM infra_strikes WHERE occurred_on >= CURRENT_DATE - 90) AS struck_90d,
       (SELECT cap FROM cap90) AS capacity_struck_90d_mt_yr,
-      (SELECT total FROM refinery_total) AS total_refining_capacity_mt_yr
+      (SELECT total FROM refinery_total) AS total_refining_capacity_mt_yr,
+      -- severity totals (impact-methodology revamp); null/absent severity → unknown
+      (SELECT COUNT(*) FROM infra_strikes WHERE COALESCE(severity, 'unknown') = 'minor') AS sev_minor,
+      (SELECT COUNT(*) FROM infra_strikes WHERE COALESCE(severity, 'unknown') = 'moderate') AS sev_moderate,
+      (SELECT COUNT(*) FROM infra_strikes WHERE COALESCE(severity, 'unknown') = 'major') AS sev_major,
+      (SELECT COUNT(*) FROM infra_strikes WHERE COALESCE(severity, 'unknown') = 'unknown') AS sev_unknown,
+      (SELECT COUNT(DISTINCT infra_id) FROM infra_strikes WHERE COALESCE(severity, 'unknown') = 'major') AS major_facilities
   `;
   const t = totalsRows[0] ?? {};
   const cap90 = Number(t.capacity_struck_90d_mt_yr ?? 0);
   const totalCap = Number(t.total_refining_capacity_mt_yr ?? 0);
   const pct = totalCap > 0 ? Math.round((cap90 / totalCap) * 1000) / 10 : 0;
+
+  const severity_totals = {
+    minor: Number(t.sev_minor ?? 0),
+    moderate: Number(t.sev_moderate ?? 0),
+    major: Number(t.sev_major ?? 0),
+    unknown: Number(t.sev_unknown ?? 0),
+  };
+  const major_facilities = Number(t.major_facilities ?? 0);
 
   const monthlyRows = await sql`
     SELECT to_char(occurred_on, 'YYYY-MM') AS month,
@@ -2037,9 +2055,59 @@ async function handleImpact(): Promise<Response> {
     "2022-01",
   );
 
+  // strikes by severity per month (impact-methodology revamp). The DB only
+  // emits months that had a strike; we gap-fill to a continuous 2022→now series
+  // (mirroring fillMonthlySeries) so the chart has no holes. null/absent
+  // severity counts toward "unknown".
+  const sevRows = await sql`
+    SELECT to_char(occurred_on, 'YYYY-MM') AS month,
+           COALESCE(severity, 'unknown') AS severity,
+           COUNT(*) AS strikes
+    FROM infra_strikes
+    GROUP BY 1, 2
+  `;
+  const sevByMonth = new Map<string, { minor: number; moderate: number; major: number; unknown: number }>();
+  for (const r of sevRows as unknown as Array<{ month: string; severity: string; strikes: unknown }>) {
+    const m = sevByMonth.get(r.month) ?? { minor: 0, moderate: 0, major: 0, unknown: 0 };
+    const key = (["minor", "moderate", "major", "unknown"].includes(r.severity) ? r.severity : "unknown") as keyof typeof m;
+    m[key] += Number(r.strikes ?? 0);
+    sevByMonth.set(r.month, m);
+  }
+  // Reuse the canonical month sequence the gap-filler already produced.
+  const by_severity_monthly = monthly.map((pt) => {
+    const c = sevByMonth.get(pt.month) ?? { minor: 0, moderate: 0, major: 0, unknown: 0 };
+    return { month: pt.month, minor: c.minor, moderate: c.moderate, major: c.major, unknown: c.unknown };
+  });
+
+  // External, source-cited offline estimates (others' numbers, not ours).
+  // Graceful: [] when the table/flag is absent; try/catch around the SELECT.
+  let outage_estimates: Array<Record<string, unknown>> = [];
+  if (recon.outage) {
+    try {
+      const outRows = await sql`
+        SELECT id, as_of, offline_kbd, offline_pct, metric, source, source_url, note
+        FROM refining_outage
+        ORDER BY as_of
+      `;
+      outage_estimates = (outRows as Array<Record<string, unknown>>).map((r) => ({
+        id: r.id,
+        as_of: r.as_of,
+        offline_kbd: r.offline_kbd == null ? null : Number(r.offline_kbd),
+        offline_pct: r.offline_pct == null ? null : Number(r.offline_pct),
+        metric: r.metric,
+        source: r.source,
+        source_url: r.source_url,
+        note: r.note,
+      }));
+    } catch {
+      outage_estimates = [];
+    }
+  }
+
   const topRows = await sql`
     SELECT o.id, o.name, o.region, o.kind,
            COUNT(*) AS strikes,
+           COUNT(*) FILTER (WHERE COALESCE(s.severity, 'unknown') = 'major') AS major_strikes,
            o.capacity_mt_yr,
            MAX(s.occurred_on) AS last_on
     FROM infra_strikes s
@@ -2054,6 +2122,7 @@ async function handleImpact(): Promise<Response> {
     region: r.region,
     kind: r.kind,
     strikes: Number(r.strikes ?? 0),
+    major_strikes: Number(r.major_strikes ?? 0),
     capacity_mt_yr: r.capacity_mt_yr == null ? null : Number(r.capacity_mt_yr),
     last_on: r.last_on,
   }));
@@ -2095,6 +2164,10 @@ async function handleImpact(): Promise<Response> {
       pct_capacity_struck_90d: pct,
       corroborated: 0, // FIRMS join skipped for now — kept simple per spec
     },
+    severity_totals,
+    major_facilities,
+    by_severity_monthly,
+    outage_estimates,
     monthly,
     top_facilities,
     by_weapon,

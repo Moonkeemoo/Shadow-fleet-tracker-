@@ -120,6 +120,19 @@
     footer { color: var(--text-2); font-size: 12px; border-top: 1px solid var(--border); padding-top: 18px; }
     footer a { color: var(--text-1); }
     .pct-strong { color: var(--high); }
+    /* severity */
+    .sev-minor { fill: #8a96aa; }
+    .sev-moderate { fill: #ffa502; }
+    .sev-major { fill: #ff2d2d; }
+    .sev-chip { display:inline-block; padding:1px 8px; border-radius:10px; font-size:10px; font-weight:600; }
+    .legend { display:flex; gap:16px; font-size:12px; color:var(--text-1); margin-bottom:10px; }
+    .legend .sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+    .extnote { color: var(--text-2); font-size: 12px; margin: 0 0 12px; }
+    /* external-estimate scatter */
+    .pt { stroke: var(--bg-0); stroke-width: 1.5; cursor: pointer; }
+    .pt-kbd { fill: #3aa0ff; }
+    .pt-pct { fill: #ff7f50; }
+    .pt-line { stroke: var(--border); stroke-width: 1; fill: none; }
   </style>
 </head>
 <body>
@@ -137,10 +150,12 @@
   <main>
     <div id="error" class="empty" style="display:none;"></div>
 
+    <!-- 1 · Campaign tempo (our cited data) -->
     <section id="headline-section">
-      <h2>Campaign toll</h2>
+      <h2>Campaign tempo</h2>
+      <div class="lede">How intense the strike campaign is — counts of strikes and distinct facilities hit over time. These are our curated, source-cited records.</div>
       <div class="kpi-grid" id="kpi-grid"></div>
-      <p class="caveat" id="cap-caveat" style="display:none;">nameplate capacity at struck facilities — exposure, not measured outage.</p>
+      <p class="caveat" id="cap-caveat" style="display:none;"></p>
     </section>
 
     <section id="chart-section">
@@ -152,12 +167,45 @@
       </div>
     </section>
 
+    <!-- 2 · Severity over time (our curated classification) -->
+    <section id="severity-section">
+      <h2>Strikes by severity over time</h2>
+      <div class="lede">A curated classification of <em>reported damage</em> from each strike's own sources — <strong>not</strong> a measured outage figure. Months with no recorded severity sit in grey "unknown".</div>
+      <div class="kpi-grid" id="severity-kpis" style="grid-template-columns: repeat(4, 1fr);"></div>
+      <div class="legend" aria-hidden="true">
+        <span><span class="sw" style="background:#ff2d2d;"></span>major</span>
+        <span><span class="sw" style="background:#ffa502;"></span>moderate</span>
+        <span><span class="sw" style="background:#8a96aa;"></span>minor</span>
+        <span><span class="sw" style="background:#2a3147;"></span>unknown</span>
+      </div>
+      <div id="sev-chart-wrap" style="position:relative; background:var(--bg-1); border:1px solid var(--border); border-radius:8px; padding:14px;">
+        <svg id="sev-chart" viewBox="0 0 1000 260" preserveAspectRatio="none" role="img" aria-label="Monthly strikes by severity"></svg>
+        <div id="sev-tooltip" style="position:absolute; pointer-events:none; background:var(--bg-3); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--text-0); white-space:nowrap; transform:translate(-50%,-110%); opacity:0; transition:opacity 0.08s; z-index:5;"></div>
+      </div>
+    </section>
+
+    <!-- 3 · External offline estimates (others' numbers) -->
+    <section id="outage-section">
+      <h2>Estimated refining capacity offline (external estimates)</h2>
+      <p class="extnote"><strong>External estimates — not our calculation; sources cited.</strong> Each point is a point-in-time published estimate of Russian primary-refining capacity offline. Hover a point for source, value and context.</p>
+      <div id="outage-wrap" style="position:relative; background:var(--bg-1); border:1px solid var(--border); border-radius:8px; padding:14px;">
+        <svg id="outage-chart" viewBox="0 0 1000 260" preserveAspectRatio="none" role="img" aria-label="External refining-capacity-offline estimates over time"></svg>
+        <div id="outage-tooltip" style="position:absolute; pointer-events:none; background:var(--bg-3); border:1px solid var(--border); border-radius:6px; padding:7px 11px; font-size:12px; color:var(--text-0); max-width:260px; white-space:normal; transform:translate(-50%,-110%); opacity:0; transition:opacity 0.08s; z-index:5;"></div>
+      </div>
+      <div id="outage-legend" class="legend" style="margin-top:10px;" aria-hidden="true">
+        <span><span class="sw" style="background:#3aa0ff;"></span>kbd (thousand bbl/day)</span>
+        <span><span class="sw" style="background:#ff7f50;"></span>% of capacity</span>
+      </div>
+    </section>
+
+    <!-- 4 · Most-struck facilities -->
     <section id="top-section">
       <h2>Most-struck facilities (top 15)</h2>
-      <div class="lede">Mapped oil facilities ranked by number of recorded strikes. Capacity is nameplate refining throughput where known.</div>
+      <div class="lede">Mapped oil facilities ranked by number of recorded strikes. "Major" counts strikes curated as a primary-unit / large or extended-outage hit. Capacity is nameplate refining throughput where known.</div>
       <div id="top-facilities"></div>
     </section>
 
+    <!-- 5 · Breakdowns -->
     <section id="breakdown-section">
       <h2>Breakdowns</h2>
       <div class="breakdowns">
@@ -173,7 +221,7 @@
     </section>
 
     <footer>
-      <p>All figures from curated, source-cited strike records ⋈ mapped refining capacity; exposure not outage; no revenue modelled.</p>
+      <p>Three honest measures: <strong>campaign tempo</strong> (our cited strike counts), <strong>severity</strong> (a curated classification of reported damage — not measured outage), and <strong>external offline estimates</strong> (others' published numbers, each source-cited). We do not compute an economic % ourselves; offline figures are external cited estimates. No revenue modelled.</p>
       <p><a href="/">← back to live map</a> &nbsp;·&nbsp; <a href="/methodology.html">methodology</a></p>
     </footer>
   </main>
@@ -206,7 +254,7 @@
       return (yrs < 2 ? yrs.toFixed(1) : Math.round(yrs)) + "y ago";
     }
 
-    function renderKpis(t) {
+    function renderKpis(t, majorFacilities) {
       document.getElementById("kpi-grid").innerHTML = `
         <div class="kpi accent">
           <div class="l">Strikes — all-time</div>
@@ -214,14 +262,14 @@
           <div class="sub">${fmtNum(t.strikes_30d)} in 30d · ${fmtNum(t.strikes_90d)} in 90d</div>
         </div>
         <div class="kpi">
-          <div class="l">Facilities struck</div>
+          <div class="l">Facilities ever hit</div>
           <div class="v">${fmtNum(t.struck_all)}</div>
           <div class="sub">${fmtNum(t.struck_90d)} in last 90 days</div>
         </div>
-        <div class="kpi high">
-          <div class="l">Capacity struck (90d)</div>
-          <div class="v">${fmtNum(t.capacity_struck_90d_mt_yr)} <span style="font-size:13px;color:var(--text-2);">Mt/yr</span></div>
-          <div class="sub"><span class="pct-strong">${fmtNum(t.pct_capacity_struck_90d)}%</span> of ${fmtNum(t.total_refining_capacity_mt_yr)} Mt/yr mapped</div>
+        <div class="kpi accent">
+          <div class="l">Facilities with a major hit</div>
+          <div class="v">${fmtNum(majorFacilities)}</div>
+          <div class="sub">≥1 strike curated as major</div>
         </div>
         <div class="kpi">
           <div class="l">Strikes — last 90d</div>
@@ -229,7 +277,16 @@
           <div class="sub">${fmtNum(t.strikes_30d)} in last 30 days</div>
         </div>
       `;
-      document.getElementById("cap-caveat").style.display = "block";
+      // Small, heavily-caveated reference number — breadth of nameplate touched,
+      // NOT an outage % (the misleading "% of capacity" headline is removed).
+      const cap = t.capacity_struck_90d_mt_yr;
+      const cav = document.getElementById("cap-caveat");
+      if (cap != null && Number(cap) > 0) {
+        cav.textContent = `Σ nameplate of facilities touched in 90d: ${fmtNum(cap)} Mt/yr (breadth of facilities hit, NOT measured outage — struck ≠ offline).`;
+        cav.style.display = "block";
+      } else {
+        cav.style.display = "none";
+      }
     }
 
     function renderChart(monthly) {
@@ -289,12 +346,178 @@
       });
     }
 
+    // Severity-over-time: stacked monthly bars (major red / moderate amber /
+    // minor grey / unknown dark) from by_severity_monthly, + a small KPI row.
+    const SEV_ORDER = ["major", "moderate", "minor", "unknown"];
+    const SEV_FILL = { major: "#ff2d2d", moderate: "#ffa502", minor: "#8a96aa", unknown: "#2a3147" };
+
+    function renderSeverityKpis(tot, majorFacilities) {
+      tot = tot || { minor: 0, moderate: 0, major: 0, unknown: 0 };
+      document.getElementById("severity-kpis").innerHTML = `
+        <div class="kpi"><div class="l" style="color:#ff2d2d;">Major hits</div><div class="v" style="color:#ff2d2d;">${fmtNum(tot.major)}</div><div class="sub">${fmtNum(majorFacilities)} distinct facilities</div></div>
+        <div class="kpi"><div class="l" style="color:#ffa502;">Moderate</div><div class="v" style="color:#ffa502;">${fmtNum(tot.moderate)}</div><div class="sub">process-unit / partial</div></div>
+        <div class="kpi"><div class="l" style="color:#8a96aa;">Minor</div><div class="v" style="color:#8a96aa;">${fmtNum(tot.minor)}</div><div class="sub">tank / auxiliary / small</div></div>
+        <div class="kpi"><div class="l">Unknown</div><div class="v">${fmtNum(tot.unknown)}</div><div class="sub">source doesn't say</div></div>
+      `;
+    }
+
+    function renderSeverityChart(series) {
+      const svg = document.getElementById("sev-chart");
+      const tip = document.getElementById("sev-tooltip");
+      const wrap = document.getElementById("sev-chart-wrap");
+      svg.innerHTML = "";
+      if (!series || series.length === 0) { return; }
+      const W = 1000, H = 260, padL = 34, padR = 8, padT = 12, padB = 24;
+      const plotW = W - padL - padR, plotH = H - padT - padB;
+      const n = series.length || 1;
+      const totalOf = m => SEV_ORDER.reduce((s, k) => s + (Number(m[k]) || 0), 0);
+      const maxTotal = Math.max(1, ...series.map(totalOf));
+      const slot = plotW / n;
+      const barW = Math.max(1, slot * 0.7);
+      const parts = [];
+
+      const ticks = 4;
+      for (let i = 0; i <= ticks; i++) {
+        const val = Math.round((maxTotal / ticks) * i);
+        const y = padT + plotH - (val / maxTotal) * plotH;
+        parts.push(`<line class="grid-line" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" />`);
+        parts.push(`<text class="axis-label" x="${padL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end">${val}</text>`);
+      }
+
+      series.forEach((m, i) => {
+        const x = padL + i * slot + (slot - barW) / 2;
+        let yTop = padT + plotH;
+        // stack from bottom: minor, moderate, major, unknown on top
+        ["minor", "moderate", "major", "unknown"].forEach(k => {
+          const v = Number(m[k]) || 0;
+          if (v <= 0) return;
+          const h = (v / maxTotal) * plotH;
+          yTop -= h;
+          parts.push(`<rect x="${x.toFixed(2)}" y="${yTop.toFixed(2)}" width="${barW.toFixed(2)}" height="${h.toFixed(2)}" fill="${SEV_FILL[k]}" />`);
+        });
+        // invisible full-height hover target
+        parts.push(`<rect x="${x.toFixed(2)}" y="${padT}" width="${barW.toFixed(2)}" height="${plotH}" fill="transparent" data-i="${i}" style="cursor:pointer;" />`);
+      });
+
+      const seenYear = new Set();
+      series.forEach((m, i) => {
+        const yr = String(m.month).slice(0, 4);
+        if (!seenYear.has(yr) && ["2022", "2023", "2024", "2025", "2026"].includes(yr)) {
+          seenYear.add(yr);
+          const x = padL + i * slot + slot / 2;
+          parts.push(`<text class="axis-label" x="${x.toFixed(1)}" y="${(H - 6)}" text-anchor="middle">${yr}</text>`);
+        }
+      });
+
+      svg.innerHTML = parts.join("");
+      svg.querySelectorAll("rect[data-i]").forEach(rect => {
+        rect.addEventListener("mousemove", () => {
+          const m = series[Number(rect.getAttribute("data-i"))];
+          const r = rect.getBoundingClientRect();
+          const wr = wrap.getBoundingClientRect();
+          tip.innerHTML = `<div class="t-month" style="color:var(--text-2);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;">${escapeHtml(m.month)}</div>`
+            + `<span style="color:#ff2d2d;">${fmtNum(m.major)} major</span> · `
+            + `<span style="color:#ffa502;">${fmtNum(m.moderate)} mod</span> · `
+            + `<span style="color:#8a96aa;">${fmtNum(m.minor)} minor</span> · ${fmtNum(m.unknown)} unk`;
+          tip.style.left = (r.left - wr.left + r.width / 2) + "px";
+          tip.style.top = (r.top - wr.top) + "px";
+          tip.style.opacity = "1";
+        });
+        rect.addEventListener("mouseleave", () => { tip.style.opacity = "0"; });
+      });
+    }
+
+    // External offline-estimate scatter from outage_estimates. Each point is a
+    // published estimate (kbd or %); hover shows source + value + note. Graceful
+    // muted line when empty (data may not have landed yet).
+    function renderOutage(rows) {
+      const svg = document.getElementById("outage-chart");
+      const tip = document.getElementById("outage-tooltip");
+      const wrap = document.getElementById("outage-wrap");
+      const legend = document.getElementById("outage-legend");
+      svg.innerHTML = "";
+      if (!rows || rows.length === 0) {
+        svg.innerHTML = `<text x="500" y="130" text-anchor="middle" class="axis-label" style="font-size:13px;">external offline estimates pending — none cited yet</text>`;
+        if (legend) legend.style.display = "none";
+        return;
+      }
+      if (legend) legend.style.display = "flex";
+
+      const W = 1000, H = 260, padL = 40, padR = 12, padT = 14, padB = 26;
+      const plotW = W - padL - padR, plotH = H - padT - padB;
+      const pts = rows.map(r => {
+        const isPct = r.offline_pct != null && (r.metric === "pct" || r.offline_kbd == null);
+        const val = isPct ? Number(r.offline_pct) : Number(r.offline_kbd);
+        return { t: Date.parse(String(r.as_of).slice(0, 10) + "T00:00:00Z"), isPct, val, r };
+      }).filter(p => Number.isFinite(p.t) && Number.isFinite(p.val));
+
+      if (pts.length === 0) {
+        svg.innerHTML = `<text x="500" y="130" text-anchor="middle" class="axis-label" style="font-size:13px;">external offline estimates pending — none cited yet</text>`;
+        return;
+      }
+
+      const tMin = Math.min(...pts.map(p => p.t)), tMax = Math.max(...pts.map(p => p.t));
+      const tSpan = Math.max(1, tMax - tMin);
+      const vMax = Math.max(1, ...pts.map(p => p.val));
+      const xOf = t => padL + ((t - tMin) / tSpan) * plotW;
+      const yOf = v => padT + plotH - (v / vMax) * plotH;
+      const parts = [];
+
+      const ticks = 4;
+      for (let i = 0; i <= ticks; i++) {
+        const val = Math.round((vMax / ticks) * i);
+        const y = padT + plotH - (val / vMax) * plotH;
+        parts.push(`<line class="grid-line" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" />`);
+        parts.push(`<text class="axis-label" x="${padL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end">${val}</text>`);
+      }
+
+      // connect points of the same metric chronologically
+      ["kbd", "pct"].forEach(metric => {
+        const mp = pts.filter(p => (metric === "pct") === p.isPct).sort((a, b) => a.t - b.t);
+        if (mp.length > 1) {
+          const d = mp.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.t).toFixed(1)},${yOf(p.val).toFixed(1)}`).join(" ");
+          parts.push(`<path class="pt-line" d="${d}" />`);
+        }
+      });
+
+      pts.sort((a, b) => a.t - b.t).forEach((p, i) => {
+        parts.push(`<circle class="pt ${p.isPct ? "pt-pct" : "pt-kbd"}" cx="${xOf(p.t).toFixed(1)}" cy="${yOf(p.val).toFixed(1)}" r="5" data-i="${i}" />`);
+      });
+
+      // year labels along x
+      const seenYear = new Set();
+      pts.forEach(p => {
+        const yr = new Date(p.t).getUTCFullYear();
+        if (!seenYear.has(yr)) { seenYear.add(yr); parts.push(`<text class="axis-label" x="${xOf(p.t).toFixed(1)}" y="${H - 8}" text-anchor="middle">${yr}</text>`); }
+      });
+
+      svg.innerHTML = parts.join("");
+      const sorted = pts.slice().sort((a, b) => a.t - b.t);
+      svg.querySelectorAll("circle[data-i]").forEach(c => {
+        c.addEventListener("mousemove", () => {
+          const p = sorted[Number(c.getAttribute("data-i"))];
+          const r = c.getBoundingClientRect();
+          const wr = wrap.getBoundingClientRect();
+          const unit = p.isPct ? "% of capacity" : "kbd";
+          const dateStr = String(p.r.as_of).slice(0, 10);
+          tip.innerHTML = `<div style="font-weight:700;">${escapeHtml(p.r.source || "source")}</div>`
+            + `<div style="color:var(--text-1);">${fmtNum(p.val)} ${escapeHtml(unit)} · ${escapeHtml(dateStr)}</div>`
+            + (p.r.note ? `<div style="color:var(--text-2);margin-top:3px;">${escapeHtml(p.r.note)}</div>` : "")
+            + (p.r.source_url ? `<div style="color:var(--text-2);margin-top:3px;font-size:10px;">${escapeHtml(p.r.source_url)}</div>` : "");
+          tip.style.left = (r.left - wr.left + r.width / 2) + "px";
+          tip.style.top = (r.top - wr.top) + "px";
+          tip.style.opacity = "1";
+        });
+        c.addEventListener("mouseleave", () => { tip.style.opacity = "0"; });
+      });
+    }
+
     function renderTopFacilities(rows) {
       const target = document.getElementById("top-facilities");
       if (!rows || rows.length === 0) { target.innerHTML = '<div class="empty">No struck facilities recorded.</div>'; return; }
       target.innerHTML = `<table>
         <thead><tr>
-          <th>Facility</th><th>Region</th><th class="num">Strikes</th><th class="num">Capacity (Mt/yr)</th><th>Last hit</th>
+          <th>Facility</th><th>Region</th><th class="num">Strikes</th><th class="num">Major</th><th class="num">Capacity (Mt/yr)</th><th>Last hit</th>
         </tr></thead>
         <tbody>
           ${rows.map(f => `
@@ -302,6 +525,7 @@
               <td><a class="name-link" href="/" title="open on map">${escapeHtml(f.name || f.id)}</a><span class="kind-chip">${escapeHtml(f.kind || "")}</span></td>
               <td>${escapeHtml(f.region || "—")}</td>
               <td class="num">${fmtNum(f.strikes)}</td>
+              <td class="num">${(Number(f.major_strikes) || 0) > 0 ? `<span style="color:#ff2d2d;font-weight:600;">${fmtNum(f.major_strikes)}</span>` : "—"}</td>
               <td class="num">${f.capacity_mt_yr == null ? "—" : fmtNum(f.capacity_mt_yr)}</td>
               <td>${escapeHtml(relAge(f.last_on))}</td>
             </tr>`).join("")}
@@ -327,7 +551,7 @@
       const e = document.getElementById("error");
       e.textContent = msg;
       e.style.display = "block";
-      ["chart-section", "top-section", "breakdown-section"].forEach(id => {
+      ["chart-section", "severity-section", "outage-section", "top-section", "breakdown-section"].forEach(id => {
         const el = document.getElementById(id); if (el) el.style.display = "none";
       });
       document.getElementById("kpi-grid").innerHTML = "";
@@ -341,8 +565,12 @@
           showError("Impact data is not available yet — the infra / strikes tables are absent on this database.");
           return;
         }
-        renderKpis(d.totals);
+        const majorFacilities = Number(d.major_facilities || 0);
+        renderKpis(d.totals, majorFacilities);
         renderChart(d.monthly || []);
+        renderSeverityKpis(d.severity_totals, majorFacilities);
+        renderSeverityChart(d.by_severity_monthly || []);
+        renderOutage(d.outage_estimates || []);
         renderTopFacilities(d.top_facilities || []);
         renderBarList("by-weapon", d.by_weapon || [], "weapon");
         renderBarList("by-region", d.by_region || [], "region");
