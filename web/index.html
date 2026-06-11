@@ -962,6 +962,7 @@
         <div class="li"><span class="swatch" style="background: #2bcbba;"></span> depot</div>
         <div class="li"><span class="swatch" style="background: #54a0ff;"></span> terminal</div>
         <div class="li"><span class="swatch" style="background: #ff4757; border-radius: 0;"></span> tanker attack</div>
+        <div class="li"><span class="swatch" style="background: #ff2d2d;"></span> recent strike (brighter = fresher)</div>
         <div class="li"><span class="swatch" style="background: #ff6a00;"></span> thermal anomaly (incl. flaring)</div>
       </div>
     </div>
@@ -1044,7 +1045,7 @@
     // -------- Infra & attack icons
     const INFRA_COLORS = { refinery: "#b56cff", depot: "#2bcbba", terminal: "#54a0ff" };
     function infraIconSize() { return map.getZoom() >= 5 ? 18 : 12; }
-    function infraIcon(kind, size, struck = false) {
+    function infraIcon(kind, size, badge, burning) {
       const c = INFRA_COLORS[kind] || "#8a96aa";
       let shape;
       if (kind === "refinery") {
@@ -1057,9 +1058,13 @@
         // terminal: diamond
         shape = `<path d="M6 1.5 L11 7 L6 12.5 L1 7 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
       }
-      if (struck) {
-        // red badge dot, top-right: facility has at least one recorded strike
-        shape += `<circle cx="10.5" cy="2.5" r="2.2" fill="#ff4757" stroke="#fff" stroke-width="0.5"/>`;
+      if (badge) {
+        if (badge.glow) shape += `<circle cx="10.5" cy="2.5" r="3.7" fill="none" stroke="${badge.color}" stroke-width="0.7" opacity="0.55"/>`;
+        shape += `<circle cx="10.5" cy="2.5" r="2.2" fill="${badge.color}" stroke="#fff" stroke-width="0.5"/>`;
+      }
+      if (burning) {
+        // orange "fire now" dot, top-left — strike + live satellite anomaly
+        shape += `<circle cx="2" cy="2.5" r="2" fill="#ff6a00" stroke="#fff" stroke-width="0.4"/>`;
       }
       return L.divIcon({
         className: "infra-icon",
@@ -1277,6 +1282,37 @@
     function fmtNum(n) {
       return Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
     }
+    // Whole days from a YYYY-MM-DD / ISO date to today, UTC. null if invalid.
+    function daysSinceUTC(d) {
+      if (!d) return null;
+      const t = Date.parse(String(d).slice(0, 10) + "T00:00:00Z");
+      if (!Number.isFinite(t)) return null;
+      const today = Date.parse(new Date().toISOString().slice(0, 10) + "T00:00:00Z");
+      return Math.floor((today - t) / 86400000);
+    }
+    // Most-recent VERIFIED strike → badge style by recency, or null if none.
+    function freshnessBadge(strikes) {
+      const verified = (strikes || []).filter(s => s.verified !== false);
+      if (verified.length === 0) return null;
+      let lastDate = verified[0].occurred_on;
+      for (const s of verified) if (String(s.occurred_on) > String(lastDate)) lastDate = s.occurred_on;
+      const age = daysSinceUTC(lastDate);
+      let color = "#9a4040", glow = false;            // >90d historical (dim)
+      if (age != null && age <= 7) { color = "#ff2d2d"; glow = true; }   // hot
+      else if (age != null && age <= 30) { color = "#ff4757"; }          // recent
+      else if (age != null && age <= 90) { color = "#e0743a"; }          // mid
+      return { color, glow, lastDate, ageDays: age };
+    }
+    function relativeAge(d) {
+      const n = daysSinceUTC(d);
+      if (n == null) return "";
+      if (n <= 0) return "today";
+      if (n === 1) return "1 day ago";
+      if (n < 30) return n + " days ago";
+      if (n < 60) return "~1 month ago";
+      if (n < 365) return "~" + Math.round(n / 30) + " months ago";
+      return "~" + (Math.round(n / 36.5) / 10) + " years ago";
+    }
     function openInfraPanel(o) {
       selectedImo = null;
       const panel = document.getElementById("panel");
@@ -1328,7 +1364,7 @@
             const autoChip = s.verified === false ? strikeChip("auto · unverified", "#ffa502") : "";
             const fa = fireFacilities[o.id];
             const corroboratedChip = fa && datesWithinOneDay(fa.last_date, s.occurred_on) ? strikeChip("🛰 satellite-corroborated", "#3aa0ff") : "";
-            return attackEntry(strikes.length - i, fmtDateUTC(s.occurred_on), WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, corroboratedChip + autoChip);
+            return attackEntry(strikes.length - i, `${fmtDateUTC(s.occurred_on)} · ${relativeAge(s.occurred_on)}`, WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, corroboratedChip + autoChip);
           }).join("")}
         </div>`;
       }
@@ -1368,7 +1404,7 @@
       </div>`;
       document.getElementById("p-body").innerHTML = html;
     }
-    let infraMarkers = []; // { marker, kind, struck } — re-iconed on zoom threshold crossings
+    let infraMarkers = []; // { marker, kind, id, badge, lastStrikeOn } — re-iconed on zoom threshold crossings
     let strikesByInfra = new Map(); // infra_id -> [{occurred_on, weapon, summary, source_urls}], newest first
     async function loadInfraStrikes() {
       try {
@@ -1399,20 +1435,29 @@
             line.addTo(infraLayer);
           } else if (o.lat != null && o.lon != null) {
             const strikes = strikesByInfra.get(o.id);
+            const badge = freshnessBadge(strikes);
             const verifiedCount = strikes ? strikes.filter(s => s.verified !== false).length : 0;
-            const struck = verifiedCount > 0;
-            const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size, struck) });
-            marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${verifiedCount > 0 ? ` · 💥 ${verifiedCount} strike${verifiedCount > 1 ? "s" : ""}` : ""}`);
+            const fa = fireFacilities[o.id];
+            const burning = !!(badge && fa && fa.active && datesWithinOneDay(fa.last_date, badge.lastDate));
+            const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size, badge, burning) });
+            marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${verifiedCount > 0 ? ` · 💥 ${verifiedCount} strike${verifiedCount > 1 ? "s" : ""}` : ""}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}${burning ? " · 🔥 burning now" : ""}`);
             marker.on("click", () => openInfraPanel(o));
             marker.addTo(infraLayer);
-            infraMarkers.push({ marker, kind: o.kind, struck });
+            infraMarkers.push({ marker, kind: o.kind, id: o.id, badge, lastStrikeOn: badge ? badge.lastDate : null });
           }
         }
       } catch (err) { console.error("loadInfra failed", err); }
     }
-    map.on("zoomend", () => {
+    function reskinInfraMarkers() {
       const size = infraIconSize();
-      for (const m of infraMarkers) m.marker.setIcon(infraIcon(m.kind, size, m.struck));
+      for (const m of infraMarkers) {
+        const fa = fireFacilities[m.id];
+        const burning = !!(m.badge && fa && fa.active && datesWithinOneDay(fa.last_date, m.lastStrikeOn));
+        m.marker.setIcon(infraIcon(m.kind, size, m.badge, burning));
+      }
+    }
+    map.on("zoomend", () => {
+      reskinInfraMarkers();
     });
 
     function fmtDateUTC(d) {
@@ -1449,6 +1494,7 @@
           const r = p.frp >= 20 ? 5 : 3;
           L.circleMarker([p.lat, p.lon], { radius: r, color: "#ff6a00", weight: 0, fillColor: "#ff6a00", fillOpacity: 0.5, interactive: false }).addTo(firesLayer);
         }
+        reskinInfraMarkers();  // refresh burning overlays now that FIRMS data has arrived
       } catch (err) { console.error("loadFires failed", err); }
     }
 
