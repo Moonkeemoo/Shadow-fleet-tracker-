@@ -1333,7 +1333,7 @@
     }
     function chainNodeChip(node) {
       if (!node) return "";
-      const open = node.kind === "pipeline" || node.kind === "terminal" || node.kind === "refinery"
+      const open = node.kind === "pipeline" || node.kind === "terminal" || node.kind === "refinery" || node.kind === "depot"
         ? `onclick="openInfraById('${node.id}')"` : "";
       return `<span ${open} style="cursor:pointer;display:inline-block;padding:2px 8px;margin:2px;background:var(--bg-3);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--c-blue);">${escapeHtml(node.name)}</span>`;
     }
@@ -1348,8 +1348,10 @@
       let html = `<div class="section" style="border-left:3px solid #22d3ee;"><h3>🛢️ Supply chain</h3>`;
       for (const c of chains) {
         const ref = (c.refineries || []);
+        const depots = (c.depots || []);
         html += `<div style="margin-bottom:8px;font-size:11px;color:var(--text-1);line-height:1.7;">`;
         if (ref.length) html += `${ref.map(chainNodeChip).join("")} <span style="color:var(--c-muted);">→</span> `;
+        if (depots.length) html += `<span style="color:var(--c-muted);font-size:10px;">via</span> ${depots.map(chainNodeChip).join("")} <span style="color:var(--c-muted);">→</span> `;
         if (c.pipeline) html += `${chainNodeChip(c.pipeline)}${c.commodity ? ` <span style="color:var(--c-muted);font-size:10px;">(${escapeHtml(c.commodity)})</span>` : ""}`;
         if (c.terminal) html += ` <span style="color:var(--c-muted);">→</span> ${chainNodeChip(c.terminal)}`;
         html += `</div>`;
@@ -1365,6 +1367,7 @@
         if (c.terminal) out.push(c.terminal);
         if (c.pipeline && c.pipeline.lat != null) out.push(c.pipeline);
         for (const r of (c.refineries || [])) out.push(r);
+        for (const d of (c.depots || [])) out.push(d);
       }
       return out;
     }
@@ -1449,6 +1452,38 @@
         body.insertAdjacentHTML("beforeend", renderChainSection(d.chains));
         drawChain([{ lat: o.lat, lon: o.lon, name: o.name }, ...chainNodes(d.chains)].filter(n => n.lat != null));
       }).catch(() => {});
+
+      // Live tankers routed to this terminal — closes the chain to the sea.
+      if (o.kind === "terminal") {
+        fetch(`/api/infra/${encodeURIComponent(o.id)}/tankers`).then(r => r.json()).then(d => {
+          if (!d || !d.available) return;
+          const body = document.getElementById("p-body");
+          if (!body) return;
+          body.insertAdjacentHTML("beforeend", renderTankersSection(d.tankers));
+        }).catch(() => {});
+      }
+    }
+
+    // Tankers-at-terminal section for the infra panel. Each tanker is a clickable
+    // chip (opens the vessel) coloured red when sanctioned. Empty → a muted line.
+    function renderTankersSection(tankers) {
+      const list = tankers || [];
+      let html = `<div class="section" style="border-left:3px solid #54a0ff;"><h3>🚢 Tankers here / inbound</h3>`;
+      if (!list.length) {
+        html += `<div style="font-size:11px;color:var(--c-muted);">no tracked tankers currently routed here</div>`;
+      } else {
+        html += `<div style="display:flex;flex-wrap:wrap;gap:4px;">`;
+        for (const t of list) {
+          const label = t.name ? escapeHtml(t.name) : (t.imo ? `IMO ${escapeHtml(String(t.imo))}` : `MMSI ${escapeHtml(String(t.mmsi))}`);
+          const click = t.imo ? `onclick="openVessel(${Number(t.imo)})"` : "";
+          const color = t.sanctioned ? "var(--c-red)" : "var(--c-blue)";
+          const border = t.sanctioned ? "var(--c-red)" : "var(--border)";
+          html += `<span ${click} title="${escapeHtml(t.dest_raw || "")}" style="cursor:${t.imo ? "pointer" : "default"};display:inline-block;padding:2px 8px;background:var(--bg-3);border:1px solid ${border};border-radius:10px;font-size:11px;color:${color};">${label}${t.sanctioned ? " ⚠" : ""}</span>`;
+        }
+        html += `</div>`;
+      }
+      html += `<div style="margin-top:8px;font-size:10px;color:var(--c-muted);">Tankers whose decoded AIS destination LOCODE matches this terminal (latest position, last 48 h).</div></div>`;
+      return html;
     }
 
     // -------- Panel: attack incident card
