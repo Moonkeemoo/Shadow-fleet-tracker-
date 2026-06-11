@@ -576,11 +576,21 @@ async function handleVesselDetail(imoStr: string, req?: Request): Promise<Respon
   let supplyChain: SupplyChain[] = [];
   const destLocode = dest.port?.code ?? dest.destination?.code ?? null;
   if (destLocode && recon.links && recon.infra) {
+    // A LOCODE can map to more than one terminal (e.g. Novorossiysk RUNVS covers
+    // both Sheskharis and the CPC marine terminal) — union the chains of all that
+    // carry it, so a tanker bound there sees every route it could be loading.
     const termRows = await sql`
-      SELECT id FROM oil_infra WHERE kind = 'terminal' AND raw->>'locode' = ${destLocode} LIMIT 1
+      SELECT id FROM oil_infra WHERE kind = 'terminal' AND raw->>'locode' = ${destLocode}
     ` as unknown as Array<{ id: string }>;
-    const termId = termRows[0]?.id;
-    if (termId) supplyChain = await resolveChainsFor(termId);
+    const seen = new Set<string>();
+    for (const t of termRows) {
+      for (const chain of await resolveChainsFor(t.id)) {
+        const key = `${chain.pipeline?.id ?? ""}__${chain.terminal?.id ?? ""}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        supplyChain.push(chain);
+      }
+    }
   }
 
   return jsonResponse({

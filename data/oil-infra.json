@@ -1080,7 +1080,7 @@
     },
     {
       "id": "de-kastri-oil-terminal",
-      "locode": "RUDKA",
+      "locode": "RUDVO",
       "kind": "terminal",
       "name": "De-Kastri Oil Terminal",
       "name_local": "Нефтеотгрузочный терминал Де-Кастри",
@@ -1129,7 +1129,7 @@
     },
     {
       "id": "kozmino-oil-terminal",
-      "locode": "RUKZM",
+      "locode": "RUKOZ",
       "kind": "terminal",
       "name": "Kozmino Oil Terminal",
       "name_local": "Спецморнефтепорт Козьмино",
@@ -1153,7 +1153,7 @@
     },
     {
       "id": "murmansk-kola-bay-sts-hub",
-      "locode": "RUMMK",
+      "locode": "RUMUR",
       "kind": "terminal",
       "name": "Murmansk / Kola Bay STS Transshipment Hub",
       "name_local": "Рейдовый перегрузочный комплекс в Кольском заливе (Мурманск)",
