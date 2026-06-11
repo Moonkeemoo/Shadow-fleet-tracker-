@@ -102,6 +102,12 @@ test("summary is trimmed to 280 chars and suffixed with [auto: GDELT]", () => {
   assert.equal(short?.summary, "Short headline. [auto: GDELT]");
 });
 
+test("substring noise does not trigger strike detection", () => {
+  assert.equal(isStrikeArticle("Ceasefire talks continue in region"), false);
+  assert.equal(isStrikeArticle("Wildfire near architecture museum"), false);
+  assert.equal(isStrikeArticle("Refinery hit by drone"), true);
+});
+
 test("source_urls carries the article url and raw preserves the article", () => {
   const a = makeArticle();
   const c = mapGdeltArticle(a, "ryazan-refinery");

@@ -6,7 +6,7 @@
 //
 // No Bun/Postgres deps — unit-testable with node --test.
 
-const STRIKE_KEYWORDS = /strike|drone|attack|explosion|fire|hit|blaze|damaged|udar|удар|атак|пожеж|пожар|бпла|дрон/i;
+const STRIKE_KEYWORDS = /\b(strike|drone|uav|attack|explosion|fire|hit|blaze|damaged|udar)\b|удар|атак|пожеж|пожар|бпла|дрон/i;
 const UAV_KEYWORDS = /drone|uav|бпла|дрон/i;
 const SUMMARY_MAX = 280;
 
