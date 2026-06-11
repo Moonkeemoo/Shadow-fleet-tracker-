@@ -7,6 +7,10 @@ const schema = z.object({
   // degrades gracefully (logs acled_not_configured, exit 0) when absent.
   ACLED_EMAIL: z.string().optional(),
   ACLED_PASSWORD: z.string().optional(),
+  // NASA FIRMS map key (free at https://firms.modaps.eosdis.nasa.gov/api/) —
+  // used by the /api/fires endpoint. Optional: without it the endpoint
+  // returns available:false instead of calling NASA.
+  FIRMS_MAP_KEY: z.string().optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   AIS_BBOXES: z
     .string()
