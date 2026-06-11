@@ -1977,6 +1977,7 @@ interface SupplyChain {
   pipeline: ChainNode | null;
   terminal: ChainNode | null;
   refineries: ChainNode[];
+  depots: ChainNode[];
   commodity: string | null;
   source_urls: string[];
 }
@@ -1990,12 +1991,19 @@ async function resolveChainsFor(id: string): Promise<SupplyChain[]> {
   if (!sql) return [];
   const recon = await reconTables();
   if (!recon.links) return [];
+  // depot_ids may be NULL (column added by migration, populated by a separate
+  // research pass that may not have run yet) — COALESCE keeps it an empty array.
   const links = await sql`
-    SELECT pipeline_id, terminal_id, refinery_ids, commodity, source_urls
+    SELECT pipeline_id, terminal_id, refinery_ids,
+           COALESCE(depot_ids, '{}'::text[]) AS depot_ids,
+           commodity, source_urls
     FROM infra_links
-    WHERE pipeline_id = ${id} OR terminal_id = ${id} OR ${id} = ANY(refinery_ids)
+    WHERE pipeline_id = ${id} OR terminal_id = ${id}
+       OR ${id} = ANY(refinery_ids)
+       OR ${id} = ANY(COALESCE(depot_ids, '{}'::text[]))
   ` as unknown as Array<{
     pipeline_id: string; terminal_id: string | null; refinery_ids: string[] | null;
+    depot_ids: string[] | null;
     commodity: string | null; source_urls: string[] | null;
   }>;
   if (links.length === 0) return [];
@@ -2006,6 +2014,7 @@ async function resolveChainsFor(id: string): Promise<SupplyChain[]> {
     ids.add(l.pipeline_id);
     if (l.terminal_id) ids.add(l.terminal_id);
     for (const rid of l.refinery_ids ?? []) ids.add(rid);
+    for (const did of l.depot_ids ?? []) ids.add(did);
   }
   const nodeRows = recon.infra
     ? await sql`SELECT id, kind, name, lat, lon FROM oil_infra WHERE id = ANY(${[...ids]}::text[])` as unknown as ChainNode[]
@@ -2016,6 +2025,7 @@ async function resolveChainsFor(id: string): Promise<SupplyChain[]> {
     pipeline: byId.get(l.pipeline_id) ?? null,
     terminal: l.terminal_id ? byId.get(l.terminal_id) ?? null : null,
     refineries: (l.refinery_ids ?? []).map((rid) => byId.get(rid)).filter((n): n is ChainNode => !!n),
+    depots: (l.depot_ids ?? []).map((did) => byId.get(did)).filter((n): n is ChainNode => !!n),
     commodity: l.commodity,
     source_urls: l.source_urls ?? [],
   }));
@@ -2030,6 +2040,85 @@ async function handleInfraChain(id: string): Promise<Response> {
   }
   const chains = await resolveChainsFor(id);
   return jsonResponse({ available: true, chains });
+}
+
+interface TerminalTanker {
+  imo: string | null;
+  mmsi: string;
+  name: string | null;
+  sanctioned: boolean;
+  dest_raw: string | null;
+  last_ts: string | null;
+}
+
+// Live tankers routed to a terminal — closes the chain to the sea. Looks up the
+// terminal's LOCODE (oil_infra.raw->>'locode'), then finds tankers whose latest
+// AIS position carries a destination decoding to that port code. Only meaningful
+// for terminals; anything else (or a terminal with no locode) returns an empty
+// list. Graceful empty when the vessels/positions/oil_infra tables are absent.
+async function handleInfraTankers(id: string): Promise<Response> {
+  if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
+  const recon = await reconTables();
+  if (!recon.infra) return jsonResponse({ available: true, tankers: [] });
+
+  const termRows = await sql`
+    SELECT raw->>'locode' AS locode, lat, lon
+    FROM oil_infra WHERE id = ${id} AND kind = 'terminal'
+  ` as unknown as Array<{ locode: string | null; lat: number | null; lon: number | null }>;
+  const term = termRows[0];
+  const locode = term?.locode ? String(term.locode).trim().toUpperCase() : "";
+  if (!term || !locode) return jsonResponse({ available: true, tankers: [] });
+
+  // Latest position per tanker (recent), with raw destination + sanctioned flag.
+  // We over-fetch on a cheap prefix match (destination starts with the 2-letter
+  // country part of the locode) then confirm in JS with the same parseDestination
+  // the rest of the app uses, so multi-shape AIS strings ("RUPRI>EGSUZ") decode
+  // identically. LIMIT keeps the candidate set bounded before the JS filter.
+  let rows: Array<{ imo: string | null; mmsi: string; name: string | null; destination: string | null; sanctioned: boolean; ts: string | null }>;
+  try {
+    rows = await sql`
+      WITH latest_positions AS (
+        SELECT DISTINCT ON (mmsi) mmsi, ts
+        FROM positions
+        WHERE ts > NOW() - INTERVAL '48 hours'
+        ORDER BY mmsi, ts DESC
+      )
+      SELECT
+        v.imo::text  AS imo,
+        v.mmsi::text AS mmsi,
+        v.name,
+        v.destination,
+        lp.ts,
+        EXISTS(SELECT 1 FROM sanctioned_vessels s WHERE s.imo = v.imo) AS sanctioned
+      FROM vessels v
+      JOIN latest_positions lp ON v.mmsi = lp.mmsi
+      WHERE v.ship_type BETWEEN 80 AND 89
+        AND v.destination IS NOT NULL
+        AND UPPER(v.destination) LIKE ${locode.slice(0, 2) + "%"}
+      ORDER BY lp.ts DESC
+      LIMIT 500
+    ` as unknown as typeof rows;
+  } catch {
+    return jsonResponse({ available: true, tankers: [] });
+  }
+
+  const matched: TerminalTanker[] = [];
+  for (const r of rows) {
+    const d = parseDestination(r.destination);
+    const code = d.port?.code ?? d.destination?.code ?? null;
+    if (code !== locode) continue;
+    matched.push({
+      imo: r.imo,
+      mmsi: r.mmsi,
+      name: r.name,
+      sanctioned: !!r.sanctioned,
+      dest_raw: r.destination,
+      last_ts: r.ts,
+    });
+    if (matched.length >= 20) break;
+  }
+
+  return jsonResponse({ available: true, locode, tankers: matched });
 }
 
 async function handleFires(): Promise<Response> {
@@ -2151,6 +2240,8 @@ const server = Bun.serve({
       if (ownershipMatch) return await withCache(req, 300_000, () => handleVesselOwnership(ownershipMatch[1]!));
       const chainMatch = url.pathname.match(/^\/api\/infra\/([A-Za-z0-9_-]+)\/chain$/);
       if (chainMatch) return await withCache(req, 600_000, () => handleInfraChain(chainMatch[1]!));
+      const tankersMatch = url.pathname.match(/^\/api\/infra\/([A-Za-z0-9_-]+)\/tankers$/);
+      if (tankersMatch) return await withCache(req, 30_000, () => handleInfraTankers(tankersMatch[1]!));
       const vesselMatch = url.pathname.match(/^\/api\/vessel\/(\d+)$/);
       if (vesselMatch) return await withCache(req, 30_000, () => handleVesselDetail(vesselMatch[1]!, req));
       return await serveStatic(url.pathname);
