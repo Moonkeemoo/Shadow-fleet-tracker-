@@ -927,6 +927,7 @@
         <span class="chip layer-chip active" data-layer="clean">Clean</span>
         <span class="chip layer-chip active" data-layer="infra">Infra</span>
         <span class="chip layer-chip active" data-layer="attacks">Attacks</span>
+        <span class="chip layer-chip active" data-layer="fires">🔥 Fires</span>
       </div>
       <span class="filter-label">Risk ≥</span>
       <div class="chip-group">
@@ -961,6 +962,7 @@
         <div class="li"><span class="swatch" style="background: #2bcbba;"></span> depot</div>
         <div class="li"><span class="swatch" style="background: #54a0ff;"></span> terminal</div>
         <div class="li"><span class="swatch" style="background: #ff4757; border-radius: 0;"></span> tanker attack</div>
+        <div class="li"><span class="swatch" style="background: #ff6a00;"></span> thermal anomaly (incl. flaring)</div>
       </div>
     </div>
     <div id="timeline-svg-wrap">
@@ -990,6 +992,7 @@
     const zonesLayer = L.layerGroup().addTo(map);
     const infraLayer = L.layerGroup().addTo(map);
     const attacksLayer = L.layerGroup().addTo(map);
+    const firesLayer = L.layerGroup().addTo(map);
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
     const vesselsLayer = L.layerGroup().addTo(map);
@@ -1001,7 +1004,8 @@
     let activeRange = "24h";
     let minRisk = 0;                 // risk-score floor for the map (UX filter)
     let currentVessels = [];         // last sanctioned set (for vessel name/IMO search)
-    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true };
+    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true, fires: true };
+    let fireFacilities = {};          // infra_id -> { count, max_frp, max_confidence, last_date, active }
 
     // -------- Helpers
     function bucketColor(b) {
@@ -1286,6 +1290,7 @@
         ${o.lat != null && o.lon != null ? `<div class="row"><span class="label">Coordinates</span><span class="value">${o.lat.toFixed(3)}, ${o.lon.toFixed(3)}</span></div>` : ""}
         ${o.commodity ? `<div class="row"><span class="label">Commodity</span><span class="value">${escapeHtml(o.commodity)}</span></div>` : ""}
         <div class="row"><span class="label">Status</span><span class="value" style="color:${damaged ? "var(--c-red)" : "var(--text-1)"};font-weight:${damaged ? "700" : "400"};">${escapeHtml(o.status || "unknown")}</span></div>
+        ${fireFacilities[o.id] ? `<div style="margin-top:6px;font-size:10px;color:var(--c-muted);line-height:1.45;">🌡 thermal anomaly within 3 km, last 3 days · ${fireFacilities[o.id].count} detection${fireFacilities[o.id].count === 1 ? "" : "s"} (latest ${fmtDateUTC(fireFacilities[o.id].last_date)}) — may include routine gas flaring</div>` : ""}
       </div>`;
 
       // Capacity & scale — only when at least one metric is present
@@ -1316,7 +1321,9 @@
           <h3>💥 Strike history · ${strikeCountLabel}</h3>
           ${strikes.map((s, i) => {
             const autoChip = s.verified === false ? strikeChip("auto · unverified", "#ffa502") : "";
-            return attackEntry(strikes.length - i, fmtDateUTC(s.occurred_on), WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, autoChip);
+            const fa = fireFacilities[o.id];
+            const corroboratedChip = fa && datesWithinOneDay(fa.last_date, s.occurred_on) ? strikeChip("🛰 satellite-corroborated", "#3aa0ff") : "";
+            return attackEntry(strikes.length - i, fmtDateUTC(s.occurred_on), WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, corroboratedChip + autoChip);
           }).join("")}
         </div>`;
       }
@@ -1423,6 +1430,33 @@
       } catch (err) { console.error("loadAttacks failed", err); }
     }
 
+    // -------- Fires layer (NASA FIRMS thermal anomalies — flaring-honest framing).
+    // Neutral toggle layer of orange dots; corroboration value lives in the strike panel.
+    // Do NOT surface a "burning now" count — thermal anomalies cannot distinguish a
+    // strike fire from routine gas flaring.
+    async function loadFires() {
+      try {
+        const res = await fetch("/api/fires");
+        const d = await res.json();
+        firesLayer.clearLayers();
+        fireFacilities = d.facilities || {};
+        for (const p of (d.points || [])) {
+          const r = p.frp >= 20 ? 5 : 3;
+          L.circleMarker([p.lat, p.lon], { radius: r, color: "#ff6a00", weight: 0, fillColor: "#ff6a00", fillOpacity: 0.5, interactive: false }).addTo(firesLayer);
+        }
+      } catch (err) { console.error("loadFires failed", err); }
+    }
+
+    // True when two dates are within ±1 calendar day (UTC). Accepts "YYYY-MM-DD"
+    // or full ISO strings (strike occurred_on serializes as ISO from a DATE column).
+    function datesWithinOneDay(a, b) {
+      if (!a || !b) return false;
+      const da = Date.parse(String(a).slice(0, 10) + "T00:00:00Z");
+      const db = Date.parse(String(b).slice(0, 10) + "T00:00:00Z");
+      if (!Number.isFinite(da) || !Number.isFinite(db)) return false;
+      return Math.abs(da - db) <= 86400000;
+    }
+
     // -------- Filter chips
     document.querySelectorAll(".chip[data-list]").forEach(el => {
       el.addEventListener("click", () => {
@@ -1457,6 +1491,7 @@
         if (k === "clean")  toggleLayer(cleanLayer,  layerVisible.clean);
         if (k === "infra")   toggleLayer(infraLayer,   layerVisible.infra);
         if (k === "attacks") toggleLayer(attacksLayer, layerVisible.attacks);
+        if (k === "fires")   toggleLayer(firesLayer,   layerVisible.fires);
       });
     });
     function toggleLayer(layer, on) {
@@ -2337,12 +2372,14 @@
     loadInfraStrikes().then(loadInfra); // strikes first — loadInfra joins them onto markers
     loadAttacks();
     loadImpact();
+    loadFires();
     setInterval(loadVessels, 15000);
     setInterval(loadStats, 30000);
     setInterval(loadTimeline, 60000);
     setInterval(loadSts, 30000);
     setInterval(loadAttacks, 600000); // attacks are curated — 10 min is plenty; infra is static, no refresh
     setInterval(loadImpact, 300000);
-  </script>
+    setInterval(loadFires, 3600000);
+</script>
 </body>
 </html>
