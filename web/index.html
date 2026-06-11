@@ -929,6 +929,7 @@
         <span class="chip layer-chip active" data-layer="infra">Infra</span>
         <span class="chip layer-chip active" data-layer="attacks">Attacks</span>
         <span class="chip layer-chip active" data-layer="fires">🔥 Fires</span>
+        <span class="chip layer-chip active" data-layer="military">🎯 Military</span>
       </div>
       <span class="filter-label">Risk ≥</span>
       <div class="chip-group">
@@ -963,6 +964,7 @@
         <div class="li"><span class="swatch" style="background: #2bcbba;"></span> depot</div>
         <div class="li"><span class="swatch" style="background: #54a0ff;"></span> terminal</div>
         <div class="li"><span class="swatch" style="background: #ff4757; border-radius: 0;"></span> tanker attack</div>
+        <div class="li"><span style="font-size:13px;">🎯</span> military site</div>
         <div class="li"><span class="swatch" style="background: #ff2d2d;"></span> recent strike (brighter = fresher)</div>
         <div class="li"><span style="font-size:13px;">🔥</span> burning now (strike + live heat)</div>
         <div class="li"><span class="swatch" style="background: #ff6a00;"></span> thermal anomaly (incl. flaring)</div>
@@ -996,6 +998,7 @@
     const infraLayer = L.layerGroup().addTo(map);
     const attacksLayer = L.layerGroup().addTo(map);
     const firesLayer = L.layerGroup().addTo(map);
+    const militaryLayer = L.layerGroup().addTo(map);
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
     const vesselsLayer = L.layerGroup().addTo(map);
@@ -1022,7 +1025,7 @@
     let activeRange = "24h";
     let minRisk = 0;                 // risk-score floor for the map (UX filter)
     let currentVessels = [];         // last sanctioned set (for vessel name/IMO search)
-    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true, fires: true };
+    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true, fires: true, military: true };
     let fireFacilities = {};          // infra_id -> { count, max_frp, max_confidence, last_date, active }
 
     // -------- Helpers
@@ -1099,6 +1102,28 @@
         </svg>`,
         iconSize: [16, 16],
         iconAnchor: [8, 8],
+      });
+    }
+    // -------- Military icons (shield colored by category; distinct from infra palette)
+    const MIL_COLORS = {
+      drone: "#ffa502", missile: "#ff4d6a", ammunition: "#e0a458",
+      explosives: "#ff7f50", armor: "#2ed573", aviation: "#3aa0ff",
+      electronics: "#22d3ee", shipyard: "#7c8cf8", other: "#8a96aa",
+    };
+    function militaryIcon(category, badge) {
+      const c = MIL_COLORS[category] || "#8a96aa";
+      const size = 14;
+      // shield
+      let shape = `<path d="M6 1 L11 3.2 L11 7 C11 10.4 9 12.6 6 13.5 C3 12.6 1 10.4 1 7 L1 3.2 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      if (badge) {
+        if (badge.glow) shape += `<circle cx="10.5" cy="2.5" r="3.7" fill="none" stroke="${badge.color}" stroke-width="0.7" opacity="0.55"/>`;
+        shape += `<circle cx="10.5" cy="2.5" r="2.2" fill="${badge.color}" stroke="#fff" stroke-width="0.5"/>`;
+      }
+      return L.divIcon({
+        className: "military-icon",
+        html: `<svg viewBox="0 0 12 14" width="${size}" height="${size}">${shape}</svg>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
       });
     }
     function fmt(n, digits = 0) { return (n == null) ? "—" : Number(n).toFixed(digits); }
@@ -1295,12 +1320,17 @@
       explosion_unexplained: "Unexplained explosion",
     };
     const INFRA_KIND_LABELS = { refinery: "Refinery", depot: "Oil depot / tank farm", terminal: "Export terminal", pipeline: "Trunk pipeline" };
+    const MIL_CATEGORY_LABELS = {
+      drone: "Drone (UAV) production", missile: "Missile production", ammunition: "Ammunition plant",
+      explosives: "Explosives / propellants", armor: "Armor / vehicle plant", aviation: "Aviation plant",
+      electronics: "Electronics / optics", shipyard: "Shipyard", other: "Military-industrial site",
+    };
     function sourceLinks(urls) {
       return (urls || []).map((u, i) =>
         `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" style="display:inline-block;margin-right:8px;font-size:10px;color:var(--c-blue);text-decoration:none;">↗ source ${i + 1}</a>`
       ).join("");
     }
-    const WEAPON_LABELS = { uav: "drone strike", missile: "missile strike" };
+    const WEAPON_LABELS = { uav: "drone strike", missile: "missile strike", sabotage: "sabotage" };
     function strikeChip(text, color) {
       return `<span style="display:inline-block;padding:1px 8px;background:${color}22;border:1px solid ${color};border-radius:10px;font-size:10px;color:${color};font-weight:600;">${escapeHtml(text)}</span>`;
     }
@@ -1523,6 +1553,64 @@
       </div>`;
       document.getElementById("p-body").innerHTML = html;
     }
+
+    // -------- Panel: military-industrial site card
+    function openMilitaryPanel(s) {
+      selectedImo = null;
+      const panel = document.getElementById("panel");
+      panel.classList.add("open");
+      document.getElementById("p-name").textContent = s.name;
+      document.getElementById("p-sub").textContent = `${MIL_CATEGORY_LABELS[s.category] || s.category}${s.region ? " · " + s.region : ""}`;
+      const c = MIL_COLORS[s.category] || "#8a96aa";
+      const strikes = (Array.isArray(s.strikes) ? s.strikes.slice() : []).sort((a, b) => String(b.occurred_on).localeCompare(String(a.occurred_on)));
+      const struck = strikes.length > 0;
+
+      // Profile
+      let html = `<div class="section" style="border-left: 3px solid ${c};">
+        <h3>🎯 Profile</h3>
+        <div class="row"><span class="label">Category</span><span class="value">${escapeHtml(MIL_CATEGORY_LABELS[s.category] || s.category)}</span></div>
+        ${s.name_local ? `<div class="row"><span class="label">Local name</span><span class="value">${escapeHtml(s.name_local)}</span></div>` : ""}
+        ${s.produces ? `<div class="row"><span class="label">Produces</span><span class="value">${escapeHtml(s.produces)}</span></div>` : ""}
+        ${s.operator ? `<div class="row"><span class="label">Operator</span><span class="value">${escapeHtml(s.operator)}</span></div>` : ""}
+        ${s.region ? `<div class="row"><span class="label">Region</span><span class="value">${escapeHtml(s.region)}</span></div>` : ""}
+        <div class="row"><span class="label">Status</span><span class="value">${escapeHtml(s.status || "unknown")}</span></div>
+        ${s.lat != null && s.lon != null ? `<div class="row"><span class="label">Coordinates</span><span class="value">${Number(s.lat).toFixed(3)}, ${Number(s.lon).toFixed(3)}</span></div>` : ""}
+        <div class="row"><span class="label">Struck?</span><span class="value" style="color:${struck ? "var(--c-red)" : "var(--text-1)"};font-weight:${struck ? "700" : "400"};">${struck ? `yes · ${strikes.length} recorded strike${strikes.length > 1 ? "s" : ""}` : "no"}</span></div>
+      </div>`;
+
+      // Strike history — newest first (data file order is not guaranteed)
+      if (struck) {
+        html += `<div class="section" style="background: linear-gradient(180deg, rgba(255,71,87,0.10), transparent); border-left: 3px solid var(--c-red);">
+          <h3>💥 Strike history · ${strikes.length}</h3>
+          ${strikes.map((st, i) => {
+            const sevChip = (st.severity && st.severity !== "unknown") ? strikeChip(st.severity, st.severity === "major" ? "#ff2d2d" : st.severity === "moderate" ? "#ffa502" : "#8a96aa") : "";
+            const weaponColor = st.weapon === "missile" ? "#ff4757" : st.weapon === "sabotage" ? "#b56cff" : "#ffa502";
+            return attackEntry(strikes.length - i, `${fmtDateUTC(st.occurred_on)} · ${relativeAge(st.occurred_on)}`, WEAPON_LABELS[st.weapon] || null, weaponColor, st.summary, st.source_urls, sevChip);
+          }).join("")}
+        </div>`;
+      } else {
+        html += `<div class="section">
+          <h3>💥 Strike history</h3>
+          <div class="empty-msg">no recorded strikes</div>
+        </div>`;
+      }
+
+      // Notes — only when present
+      if (s.notes) {
+        html += `<div class="section">
+          <h3>📝 Notes</h3>
+          <div style="font-size:11px;color:var(--text-1);line-height:1.45;">${escapeHtml(s.notes)}</div>
+        </div>`;
+      }
+
+      // Sources + provenance
+      html += `<div class="section">
+        <h3>🔗 Sources</h3>
+        <div>${sourceLinks(s.source_urls)}</div>
+        <div style="margin-top:8px;font-size:10px;color:var(--c-muted);">Curated layer — public sources (press, OSINT). Strike list covers documented hits only; absence of a record is not evidence of no strike.</div>
+      </div>`;
+      document.getElementById("p-body").innerHTML = html;
+    }
     let infraMarkers = []; // { marker, kind, id, badge, lastStrikeOn } — re-iconed on zoom threshold crossings
     let strikesByInfra = new Map(); // infra_id -> [{occurred_on, weapon, summary, source_urls}], newest first
     async function loadInfraStrikes() {
@@ -1629,6 +1717,25 @@
       return Math.abs(da - db) <= 86400000;
     }
 
+    // -------- Military layer (Russian military-industrial sites — curated, static)
+    async function loadMilitary() {
+      try {
+        const res = await fetch("/api/military");
+        const data = await res.json();
+        if (!data || !data.available) return; // military_sites table absent — skip, like other recon layers
+        militaryLayer.clearLayers();
+        for (const s of (data.results || [])) {
+          if (s.lat == null || s.lon == null) continue;
+          const strikes = Array.isArray(s.strikes) ? s.strikes : [];
+          const badge = s.struck ? freshnessBadge(strikes) : null;
+          const marker = L.marker([s.lat, s.lon], { icon: militaryIcon(s.category, badge) });
+          marker.bindTooltip(`${escapeHtml(s.name)}${s.produces ? ` · ${escapeHtml(s.produces)}` : ""} · ${strikes.length > 0 ? `💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : "not struck"}`);
+          marker.on("click", () => openMilitaryPanel(s));
+          marker.addTo(militaryLayer);
+        }
+      } catch (err) { console.error("loadMilitary failed", err); }
+    }
+
     // -------- Filter chips
     document.querySelectorAll(".chip[data-list]").forEach(el => {
       el.addEventListener("click", () => {
@@ -1664,6 +1771,7 @@
         if (k === "infra")   toggleLayer(infraLayer,   layerVisible.infra);
         if (k === "attacks") toggleLayer(attacksLayer, layerVisible.attacks);
         if (k === "fires")   toggleLayer(firesLayer,   layerVisible.fires);
+        if (k === "military") toggleLayer(militaryLayer, layerVisible.military);
       });
     });
     function toggleLayer(layer, on) {
@@ -2554,6 +2662,7 @@
     loadAttacks();
     loadImpact();
     loadFires();
+    loadMilitary(); // curated military-industrial sites — static, no refresh
     setInterval(loadVessels, 15000);
     setInterval(loadStats, 30000);
     setInterval(loadTimeline, 60000);
