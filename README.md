@@ -304,10 +304,11 @@ bun run load-attacks    # tanker-attack incidents (data/tanker-attacks.json)
 bun run load-infra-strikes   # strike events on infra objects (data/infra-strikes.json)
 bun run load-acled-strikes   # weekly: ACLED candidate strikes (requires ACLED_EMAIL/ACLED_PASSWORD)
 bun run load-gdelt-strikes   # weekly: GDELT news candidate strikes (no credentials needed)
+bun run load-firms-triggered # daily: satellite heat → targeted GDELT lookup per hot facility (needs FIRMS_MAP_KEY)
 bun run verify-strike <id>   # curator confirms a candidate (--reject <id> deletes it)
 ```
 
-ACLED and GDELT candidates land flagged `auto · unverified` and stay that way in the UI until a curator confirms them with `verify-strike`.
+ACLED, GDELT and FIRMS-triggered candidates land flagged `auto · unverified` and stay that way in the UI until a curator confirms them with `verify-strike`. The FIRMS-triggered feed inverts the polling problem: instead of querying all ~69 facilities through GDELT (rate-bans, noise), one cheap NASA FIRMS call surfaces the handful of facilities with a fresh thermal anomaly, and only those get a targeted news query — a satellite-heat + news-hit candidate, shown with a `🔥🛰 heat-triggered` chip.
 
 ---
 
@@ -380,7 +381,8 @@ ACLED and GDELT candidates land flagged `auto · unverified` and stay that way i
 | `bun run load-infra-strikes` | (Re-)load strike events on infra objects (`data/infra-strikes.json`) |
 | `bun run load-acled-strikes` | Weekly auto-feed of candidate strikes from ACLED (inserted as `auto · unverified`) |
 | `bun run load-gdelt-strikes [days]` | Weekly auto-feed of candidate strikes from GDELT news search, default 7-day window (inserted as `auto · unverified`) |
-| `bun run verify-strike <id>` / `bun run verify-strike --reject <id>` | Curator confirms (promotes to verified) or rejects (deletes) an ACLED/GDELT candidate |
+| `bun run load-firms-triggered [days]` | FIRMS-triggered auto-feed: hot facilities (NASA thermal anomaly) get a targeted GDELT lookup, default 3-day window (inserted as `auto · unverified`, `🔥🛰 heat-triggered`) |
+| `bun run verify-strike <id>` / `bun run verify-strike --reject <id>` | Curator confirms (promotes to verified) or rejects (deletes) an ACLED/GDELT/FIRMS-triggered candidate |
 | `bun run test` | Run unit tests — risk scoring + dataset normalization (Node) |
 | `bun run db:up` / `bun run db:down` | Postgres container lifecycle |
 | `bun run db:psql` | Open a `psql` shell into the DB |

@@ -381,7 +381,7 @@
           </tr>
           <tr>
             <td><strong><a href="https://firms.modaps.eosdis.nasa.gov/" target="_blank">NASA FIRMS (VIIRS thermal anomalies)</a></strong></td>
-            <td>Near-real-time satellite thermal anomalies, matched to mapped facilities to corroborate strikes (cannot distinguish strike fire from routine gas flaring).</td>
+            <td>Near-real-time satellite thermal anomalies, matched to mapped facilities to corroborate strikes (cannot distinguish strike fire from routine gas flaring). Also <em>triggers</em> targeted news lookups: a fresh anomaly at a facility (<code>load-firms-triggered</code>) fires one GDELT query for that object &mdash; a strike candidate shown &ldquo;&#x1F525;&#x1F6F0; heat-triggered&rdquo;, unverified until curator confirmation. The news query self-filters facilities that merely flare.</td>
             <td>Free (registered MAP_KEY); NASA open data.</td>
             <td>Hourly (live proxy, cached 1h)</td>
           </tr>
@@ -790,6 +790,7 @@
           <tr><td>Facility strikes (infra-strikes)</td><td>Manual reload, ongoing curation (<code>bun run load-infra-strikes</code>).</td></tr>
           <tr><td>Facility strikes — ACLED auto-feed</td><td>Weekly (<code>bun run load-acled-strikes</code>); curator confirms via <code>bun run verify-strike &lt;id&gt;</code>.</td></tr>
           <tr><td>Facility strikes — GDELT auto-feed</td><td>Weekly (<code>bun run load-gdelt-strikes</code>); curator confirms via <code>bun run verify-strike &lt;id&gt;</code>.</td></tr>
+          <tr><td>Facility strikes — FIRMS-triggered</td><td>Daily (<code>bun run load-firms-triggered</code>): hot facilities only get a targeted GDELT query; curator confirms via <code>bun run verify-strike &lt;id&gt;</code>.</td></tr>
           <tr><td>FIRMS thermal layer</td><td>Live proxy, cached 1 hour (<code>/api/fires</code>).</td></tr>
         </tbody>
       </table>

@@ -1364,7 +1364,8 @@
             const autoChip = s.verified === false ? strikeChip("auto · unverified", "#ffa502") : "";
             const fa = fireFacilities[o.id];
             const corroboratedChip = fa && datesWithinOneDay(fa.last_date, s.occurred_on) ? strikeChip("🛰 satellite-corroborated", "#3aa0ff") : "";
-            return attackEntry(strikes.length - i, `${fmtDateUTC(s.occurred_on)} · ${relativeAge(s.occurred_on)}`, WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, corroboratedChip + autoChip);
+            const triggerChip = s.origin === "firms-trigger" ? strikeChip("🔥🛰 heat-triggered", "#ff8c00") : "";
+            return attackEntry(strikes.length - i, `${fmtDateUTC(s.occurred_on)} · ${relativeAge(s.occurred_on)}`, WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, corroboratedChip + triggerChip + autoChip);
           }).join("")}
         </div>`;
       }
