@@ -1862,8 +1862,7 @@ async function handleInfra(req: Request): Promise<Response> {
 }
 
 // Russian military-industrial sites (drone plants, missile factories, etc.).
-// Optional filter: ?category=drone  (validated against the 9 category values;
-// unknown values are ignored — returns all sites.)
+// Optional filter: ?category=drone
 async function handleMilitary(req: Request): Promise<Response> {
   if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
   const recon = await reconTables();
@@ -1871,9 +1870,7 @@ async function handleMilitary(req: Request): Promise<Response> {
     return jsonResponse({ available: false, count: 0, results: [], note: "military_sites table absent — run db/migrate-add-military.sql then bun run load-military" });
   }
   const url = new URL(req.url);
-  const categoryParam = url.searchParams.get("category");
-  const VALID_CATEGORIES = new Set(["drone", "missile", "ammunition", "explosives", "armor", "aviation", "electronics", "shipyard", "other"]);
-  const category = categoryParam && VALID_CATEGORIES.has(categoryParam) ? categoryParam : null;
+  const category = url.searchParams.get("category") || null;
 
   const rows = await sql`
     SELECT id, name, name_local, lat, lon, category, produces, operator,
@@ -1883,6 +1880,7 @@ async function handleMilitary(req: Request): Promise<Response> {
     WHERE TRUE
       ${category ? sql`AND category = ${category}` : sql``}
     ORDER BY category, id
+    LIMIT 1000
   `;
   return jsonResponse({ available: true, count: rows.length, results: rows });
 }

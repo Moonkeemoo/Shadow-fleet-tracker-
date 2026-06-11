@@ -12,7 +12,7 @@
 
 CREATE TABLE IF NOT EXISTS military_sites (
   id          TEXT PRIMARY KEY,       -- stable kebab-case slug
-  name        TEXT,
+  name        TEXT NOT NULL,
   name_local  TEXT,
   lat         REAL,
   lon         REAL,
