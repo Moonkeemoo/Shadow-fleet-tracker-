@@ -27,3 +27,8 @@ CREATE TABLE IF NOT EXISTS infra_links (
 );
 CREATE INDEX IF NOT EXISTS infra_links_terminal_idx ON infra_links (terminal_id);
 CREATE INDEX IF NOT EXISTS infra_links_pipeline_idx ON infra_links (pipeline_id);
+
+-- depot_ids: storage/transshipment depots that sit on the pipeline between the
+-- refineries and the export terminal (matches oil_infra.id[]). Added after the
+-- initial table; idempotent so existing databases pick it up on re-run.
+ALTER TABLE infra_links ADD COLUMN IF NOT EXISTS depot_ids TEXT[];

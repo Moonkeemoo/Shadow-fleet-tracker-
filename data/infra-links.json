@@ -12,7 +12,16 @@
         "https://www.gem.wiki/Baku-Novorossiysk_Oil_Pipeline",
         "https://euromaidanpress.com/2026/05/23/ukraine-strikes-russias-sheskharis-terminal-with-75-million-tons-of-annual-oil-throughput-and-2-5-million-cubic-meters-of-tank-capacity/",
         "https://en.wikipedia.org/wiki/Tuapse_Refinery",
-        "https://investkuban.ru/en/region/branch/industry/"
+        "https://investkuban.ru/en/region/branch/industry/",
+        "https://chernomor.transneft.ru/about/struktur_podr/shesharis?print=1",
+        "https://neftegaz.ru/news/transport-and-storage/502396-na-neftebaze-grushovaya-kompleksa-sheskharis-poyavyatsya-novye-neftyanye-rezervuary-/",
+        "https://energybase.ru/compressor-station/iops-tikhoreckaya",
+        "https://energybase.ru/pipeline/tikhoreck-novorossiysk-3",
+        "https://energybase.ru/pipeline/kuybyshev-tikhoreck"
+      ],
+      "depot_ids": [
+        "grushovaya-oil-depot",
+        "tikhoretsk-lpds"
       ]
     },
     {
@@ -52,7 +61,15 @@
         "https://en.wikipedia.org/wiki/Druzhba_pipeline",
         "https://en.wikipedia.org/wiki/Baltic_Pipeline_System",
         "https://www.offshore-technology.com/projects/tanecorefinery/",
-        "https://en.wikipedia.org/wiki/Eastern_Siberia-Pacific_Ocean_oil_pipeline"
+        "https://en.wikipedia.org/wiki/Eastern_Siberia-Pacific_Ocean_oil_pipeline",
+        "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D0%BB%D1%82%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%82%D1%80%D1%83%D0%B1%D0%BE%D0%BF%D1%80%D0%BE%D0%B2%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0_%E2%80%94_2",
+        "http://archive.premier.gov.ru/visits/ru/18522/info/18516/print/",
+        "https://rg.ru/2019/07/22/kak-idet-rabota-na-stancii-unecha-nefteprovoda-druzhba.html",
+        "https://neftegaz.ru/news/transport-and-storage/210746-transneft-druzhba-ozhidaemo-uvelichila-propusknuyu-sposobnost-nefteprovoda-bts-2-do-36-mln-t-god/"
+      ],
+      "depot_ids": [
+        "andreapol-lpds",
+        "unecha-vysokoye-lpds"
       ]
     },
     {
@@ -62,7 +79,13 @@
       "commodity": "crude",
       "source_urls": [
         "https://en.wikipedia.org/wiki/Caspian_Pipeline_Consortium",
-        "https://www.gem.wiki/Caspian_Pipeline"
+        "https://www.gem.wiki/Caspian_Pipeline",
+        "https://ria.ru/20250324/kavkazskaya-2007019710.html",
+        "https://www.cpc.ru/RU/press/releases/2025/Pages/20250523-1.aspx",
+        "https://tass.ru/ekonomika/23447317"
+      ],
+      "depot_ids": [
+        "kavkazskaya-oil-transshipment"
       ]
     },
     {
@@ -98,7 +121,26 @@
         "https://en.wikipedia.org/wiki/Gazprom_Neftekhim_Salavat",
         "https://www.gem.wiki/Shkapovo-Salavat_Oil_Pipeline",
         "http://russianamericanbusiness.org/home/content/transneft%E2%80%99s-commissions-yug-petroleum-pipelines/",
-        "https://www.offshore-technology.com/projects/tanecorefinery/"
+        "https://www.offshore-technology.com/projects/tanecorefinery/",
+        "https://nashcheremshan.ru/news/znayte/lpds-lazarevo-otmechaet-40-letniy-yubiley-deyatelnosti",
+        "https://www.nefteavtomatika.ru/ru/projects/lpds-lazarevo-ao-transneft-prikame/",
+        "https://druzhba.transneft.ru/press/news/?id=44781",
+        "https://www.nefteavtomatika.ru/ru/projects/lpds-nikolskoe-ao-transneft-druzhba/",
+        "https://energybase.ru/compressor-station/ldps-lopatino",
+        "https://www.kommersant.ru/doc/5735852",
+        "https://geopriz.ru/projects/magistralnyj-nefteprovod-druzhba/",
+        "https://druzhba.transneft.ru/press/news?id=37802",
+        "https://energybase.ru/compressor-station/lpds-stalnoy-kon",
+        "https://rg.ru/2019/07/22/kak-idet-rabota-na-stancii-unecha-nefteprovoda-druzhba.html",
+        "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D0%BB%D1%82%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%82%D1%80%D1%83%D0%B1%D0%BE%D0%BF%D1%80%D0%BE%D0%B2%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0_%E2%80%94_2",
+        "https://neftegaz.ru/news/transport-and-storage/210746-transneft-druzhba-ozhidaemo-uvelichila-propusknuyu-sposobnost-nefteprovoda-bts-2-do-36-mln-t-god/"
+      ],
+      "depot_ids": [
+        "lazarevo-lpds",
+        "nikolskoye-lpds",
+        "samara-lpds-hub",
+        "stalnoy-kon-lpds",
+        "unecha-vysokoye-lpds"
       ]
     },
     {
@@ -110,7 +152,26 @@
       "commodity": "crude",
       "source_urls": [
         "https://en.wikipedia.org/wiki/Druzhba_pipeline",
-        "https://www.gem.wiki/Druzhba_Oil_Pipeline"
+        "https://www.gem.wiki/Druzhba_Oil_Pipeline",
+        "https://neftegaz.ru/news/incidental/779349-neftebaza-v-g-klintsy-bryanskoy-oblasti-podverglas-udaru-bpla/",
+        "https://ru.wikipedia.org/wiki/%D0%94%D1%80%D1%83%D0%B6%D0%B1%D0%B0_(%D0%BD%D0%B5%D1%84%D1%82%D0%B5%D0%BF%D1%80%D0%BE%D0%B2%D0%BE%D0%B4)",
+        "https://druzhba.transneft.ru/press/news/?id=44781",
+        "https://www.nefteavtomatika.ru/ru/projects/lpds-nikolskoe-ao-transneft-druzhba/",
+        "https://energybase.ru/compressor-station/ldps-lopatino",
+        "https://www.kommersant.ru/doc/5735852",
+        "https://geopriz.ru/projects/magistralnyj-nefteprovod-druzhba/",
+        "https://druzhba.transneft.ru/press/news?id=37802",
+        "https://energybase.ru/compressor-station/lpds-stalnoy-kon",
+        "https://rg.ru/2019/07/22/kak-idet-rabota-na-stancii-unecha-nefteprovoda-druzhba.html",
+        "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D0%BB%D1%82%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%82%D1%80%D1%83%D0%B1%D0%BE%D0%BF%D1%80%D0%BE%D0%B2%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0_%E2%80%94_2",
+        "https://neftegaz.ru/news/transport-and-storage/210746-transneft-druzhba-ozhidaemo-uvelichila-propusknuyu-sposobnost-nefteprovoda-bts-2-do-36-mln-t-god/"
+      ],
+      "depot_ids": [
+        "klintsy-oil-depot",
+        "nikolskoye-lpds",
+        "samara-lpds-hub",
+        "stalnoy-kon-lpds",
+        "unecha-vysokoye-lpds"
       ]
     },
     {
@@ -191,7 +252,23 @@
         "https://www.spglobal.com/commodityinsights/en/market-insights/latest-news/oil/053014-russias-lukoil-transneft-agree-cooperation-on-oil-product-routes",
         "https://www.gem.wiki/Lysychansk-Tikhoretsk_Oil_Pipeline",
         "https://en.wikipedia.org/wiki/Tuapse_Refinery",
-        "https://en.wikipedia.org/wiki/Volgograd_refinery"
+        "https://en.wikipedia.org/wiki/Volgograd_refinery",
+        "https://chernomor.transneft.ru/about/struktur_podr/shesharis?print=1",
+        "https://neftegaz.ru/news/transport-and-storage/502396-na-neftebaze-grushovaya-kompleksa-sheskharis-poyavyatsya-novye-neftyanye-rezervuary-/",
+        "https://energybase.ru/pipeline/kuybyshev-tikhoreck",
+        "https://volga.transneft.ru/press/news/?id=64611",
+        "https://ru.themoscowtimes.com/2026/06/08/ukraina-udarila-po-krupneishemu-neftyanomu-terminalu-rossii-na-chernom-more-i-lpds-v-volgogradskoi-oblasti-a197550",
+        "https://energybase.ru/compressor-station/ldps-lopatino",
+        "https://www.kommersant.ru/doc/5735852",
+        "https://geopriz.ru/projects/magistralnyj-nefteprovod-druzhba/",
+        "https://energybase.ru/compressor-station/iops-tikhoreckaya",
+        "https://energybase.ru/pipeline/tikhoreck-novorossiysk-3"
+      ],
+      "depot_ids": [
+        "grushovaya-oil-depot",
+        "krasny-yar-lpds",
+        "samara-lpds-hub",
+        "tikhoretsk-lpds"
       ]
     },
     {

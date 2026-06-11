@@ -31,6 +31,7 @@ interface LinkRow {
   pipeline_id: string;
   terminal_id: string | null;
   refinery_ids: string[];
+  depot_ids: string[];
   commodity: string | null;
   source_urls: string[];
   raw: Record<string, unknown>;
@@ -53,6 +54,7 @@ function normalizeLink(raw: Record<string, unknown>): LinkRow | null {
     pipeline_id,
     terminal_id,
     refinery_ids: asStringArray(raw.refinery_ids),
+    depot_ids: asStringArray(raw.depot_ids),
     commodity: typeof raw.commodity === "string" ? raw.commodity.trim() : null,
     source_urls: asStringArray(raw.source_urls),
     raw,
@@ -66,11 +68,14 @@ async function ensureTable(): Promise<void> {
       pipeline_id   TEXT NOT NULL,
       terminal_id   TEXT,
       refinery_ids  TEXT[],
+      depot_ids     TEXT[],
       commodity     TEXT,
       source_urls   TEXT[],
       raw           JSONB,
       first_seen    TIMESTAMPTZ DEFAULT NOW()
     )`;
+  // Idempotent for databases created before depot_ids existed.
+  await sql!`ALTER TABLE infra_links ADD COLUMN IF NOT EXISTS depot_ids TEXT[]`;
   await sql!`CREATE INDEX IF NOT EXISTS infra_links_terminal_idx ON infra_links (terminal_id)`;
   await sql!`CREATE INDEX IF NOT EXISTS infra_links_pipeline_idx ON infra_links (pipeline_id)`;
 }
@@ -95,15 +100,16 @@ async function main(): Promise<void> {
     try {
       await sql`
         INSERT INTO infra_links (
-          id, pipeline_id, terminal_id, refinery_ids, commodity, source_urls, raw
+          id, pipeline_id, terminal_id, refinery_ids, depot_ids, commodity, source_urls, raw
         ) VALUES (
           ${r.id}, ${r.pipeline_id}, ${r.terminal_id},
-          ${r.refinery_ids}::text[], ${r.commodity},
+          ${r.refinery_ids}::text[], ${r.depot_ids}::text[], ${r.commodity},
           ${r.source_urls}::text[], ${sql.json(r.raw as Parameters<typeof sql.json>[0])}
         )
         ON CONFLICT (id) DO UPDATE SET
           pipeline_id = EXCLUDED.pipeline_id, terminal_id = EXCLUDED.terminal_id,
-          refinery_ids = EXCLUDED.refinery_ids, commodity = EXCLUDED.commodity,
+          refinery_ids = EXCLUDED.refinery_ids, depot_ids = EXCLUDED.depot_ids,
+          commodity = EXCLUDED.commodity,
           source_urls = EXCLUDED.source_urls, raw = EXCLUDED.raw
       `;
       inserted++;
