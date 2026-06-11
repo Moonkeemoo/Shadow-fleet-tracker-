@@ -1575,7 +1575,7 @@
         ${s.region ? `<div class="row"><span class="label">Region</span><span class="value">${escapeHtml(s.region)}</span></div>` : ""}
         <div class="row"><span class="label">Status</span><span class="value">${escapeHtml(s.status || "unknown")}</span></div>
         ${s.lat != null && s.lon != null ? `<div class="row"><span class="label">Coordinates</span><span class="value">${Number(s.lat).toFixed(3)}, ${Number(s.lon).toFixed(3)}</span></div>` : ""}
-        <div class="row"><span class="label">Struck?</span><span class="value" style="color:${struck ? "var(--c-red)" : "var(--text-1)"};font-weight:${struck ? "700" : "400"};">${struck ? `yes · ${strikes.length} recorded strike${strikes.length > 1 ? "s" : ""}` : "no"}</span></div>
+        <div class="row"><span class="label">Struck?</span><span class="value" style="color:${struck ? "var(--c-red)" : "var(--text-1)"};font-weight:${struck ? "700" : "400"};">${struck ? `yes · ${strikes.length} recorded strike${strikes.length > 1 ? "s" : ""} · last hit ${fmtDateUTC(strikes[0].occurred_on)} (${relativeAge(strikes[0].occurred_on)})` : "no"}</span></div>
       </div>`;
 
       // Strike history — newest first (data file order is not guaranteed)
@@ -1731,7 +1731,7 @@
           const marker = L.marker([s.lat, s.lon], { icon: militaryIcon(s.category, badge) });
           // produces can run to ~230 chars; Leaflet tooltips don't wrap — keep it short, full text lives in the panel
           const producesShort = s.produces ? String(s.produces).slice(0, 60) + (String(s.produces).length > 60 ? "…" : "") : "";
-          marker.bindTooltip(`${escapeHtml(s.name)}${producesShort ? ` · ${escapeHtml(producesShort)}` : ""} · ${strikes.length > 0 ? `💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : "not struck"}`);
+          marker.bindTooltip(`${escapeHtml(s.name)}${producesShort ? ` · ${escapeHtml(producesShort)}` : ""} · ${strikes.length > 0 ? `💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : "not struck"}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}`);
           marker.on("click", () => openMilitaryPanel(s));
           marker.addTo(militaryLayer);
         }
