@@ -104,15 +104,15 @@ const SANCTIONED_COUNTRIES = ["ru", "ir", "kp", "by", "sy", "ve"];
 // They may be absent on databases provisioned before that migration, so every
 // query that touches them is guarded by this one-time, cached existence check —
 // keeping the API fully backward-compatible.
-let _reconTables: { psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean; outage: boolean } | null = null;
-async function reconTables(): Promise<{ psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean; outage: boolean }> {
+let _reconTables: { psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean; outage: boolean; military: boolean } | null = null;
+async function reconTables(): Promise<{ psc: boolean; cases: boolean; crea: boolean; infra: boolean; attacks: boolean; strikes: boolean; links: boolean; outage: boolean; military: boolean }> {
   if (_reconTables) return _reconTables;
-  if (!sql) return { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false, outage: false };
+  if (!sql) return { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false, outage: false, military: false };
   try {
-    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases, to_regclass('public.crea_vessels') AS crea, to_regclass('public.oil_infra') AS infra, to_regclass('public.tanker_attacks') AS attacks, to_regclass('public.infra_strikes') AS strikes, to_regclass('public.infra_links') AS links, to_regclass('public.refining_outage') AS outage`;
-    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases, crea: !!r[0]?.crea, infra: !!r[0]?.infra, attacks: !!r[0]?.attacks, strikes: !!r[0]?.strikes, links: !!r[0]?.links, outage: !!r[0]?.outage };
+    const r = await sql`SELECT to_regclass('public.psc_detentions') AS psc, to_regclass('public.known_cases') AS cases, to_regclass('public.crea_vessels') AS crea, to_regclass('public.oil_infra') AS infra, to_regclass('public.tanker_attacks') AS attacks, to_regclass('public.infra_strikes') AS strikes, to_regclass('public.infra_links') AS links, to_regclass('public.refining_outage') AS outage, to_regclass('public.military_sites') AS military`;
+    _reconTables = { psc: !!r[0]?.psc, cases: !!r[0]?.cases, crea: !!r[0]?.crea, infra: !!r[0]?.infra, attacks: !!r[0]?.attacks, strikes: !!r[0]?.strikes, links: !!r[0]?.links, outage: !!r[0]?.outage, military: !!r[0]?.military };
   } catch {
-    _reconTables = { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false, outage: false };
+    _reconTables = { psc: false, cases: false, crea: false, infra: false, attacks: false, strikes: false, links: false, outage: false, military: false };
   }
   return _reconTables;
 }
@@ -1861,6 +1861,30 @@ async function handleInfra(req: Request): Promise<Response> {
   return jsonResponse({ count: rows.length, objects: rows });
 }
 
+// Russian military-industrial sites (drone plants, missile factories, etc.).
+// Optional filter: ?category=drone
+async function handleMilitary(req: Request): Promise<Response> {
+  if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
+  const recon = await reconTables();
+  if (!recon.military) {
+    return jsonResponse({ available: false, count: 0, results: [], note: "military_sites table absent — run db/migrate-add-military.sql then bun run load-military" });
+  }
+  const url = new URL(req.url);
+  const category = url.searchParams.get("category") || null;
+
+  const rows = await sql`
+    SELECT id, name, name_local, lat, lon, category, produces, operator,
+           region, status, strikes, notes, source_urls,
+           COALESCE(jsonb_array_length(strikes), 0) > 0 AS struck
+    FROM military_sites
+    WHERE TRUE
+      ${category ? sql`AND category = ${category}` : sql``}
+    ORDER BY category, id
+    LIMIT 1000
+  `;
+  return jsonResponse({ available: true, count: rows.length, results: rows });
+}
+
 // Russia-linked tanker-attack incidents.
 // Optional filters: ?since=2024-01-01  ?imo=9735335  ?format=csv
 // (?since instead of the usual ?range — incidents span 2022-2026 while
@@ -2428,6 +2452,7 @@ const server = Bun.serve({
       if (url.pathname === "/api/stats")             return await withCache(req, 30_000, () => handleStats());
       if (url.pathname === "/api/zones")             return await withCache(req, 600_000, () => handleZones());
       if (url.pathname === "/api/infra")             return await withCache(req, 600_000, () => handleInfra(req));
+      if (url.pathname === "/api/military")          return await withCache(req, 600_000, () => handleMilitary(req));
       if (url.pathname === "/api/attacks")           return await withCache(req, 300_000, () => handleAttacks(req));
       if (url.pathname === "/api/infra-strikes")     return await withCache(req, 300_000, () => handleInfraStrikes(req));
       if (url.pathname === "/api/strike-impact")     return await withCache(req, 300_000, () => handleStrikeImpact());

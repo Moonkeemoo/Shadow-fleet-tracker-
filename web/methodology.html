@@ -391,6 +391,12 @@
             <td>Curated from public sources (CC-BY-NC research use)</td>
             <td>Manual, as needed</td>
           </tr>
+          <tr>
+            <td><strong>Military-industrial sites (curated OSINT)</strong></td>
+            <td>~58 Russian defence-industrial production sites (drone, missile, ammunition, explosives, armour, aviation, electronics, shipyard, other categories), with embedded strike histories per site. Compiled from public OSINT and press reporting; every site and every strike cited per record (<code>data/military-sites.json</code>). <em>Publicly-reported strikes only — absence of a recorded strike ≠ confirmed never hit.</em></td>
+            <td>Curated from public sources (CC-BY-NC research use)</td>
+            <td>Manual, ongoing curation (<code>bun run load-military</code>)</td>
+          </tr>
         </tbody>
       </table>
       <div class="callout info">
@@ -733,7 +739,7 @@
     <section id="infra-attacks">
       <h2>13. Layers</h2>
       <h3 class="title">Oil infrastructure &amp; tanker-attack layers</h3>
-      <p>Two static reference layers add land-side context to the live vessel picture.</p>
+      <p>Three static reference layers add land-side context to the live vessel picture; the military-industrial layer (&#x1F3AF; Military chip) maps ~58 Russian defence-production sites across nine categories with embedded, cited strike histories.</p>
       <ul>
         <li><strong>Infra</strong> — Russian oil refineries, major depots/tank farms, marine export terminals and trunk pipelines (simplified routes). Compiled from Global Energy Monitor (CC BY 4.0), Wikipedia/Wikidata, CREA publications and OpenStreetMap. Every record carries its source links, visible in the object card. Facilities also carry a per-event strike history (Ukrainian drone/missile strikes, as publicly reported), shown in the object card. New candidate strikes are pulled weekly from ACLED and GDELT news search, matched to facilities by location (ACLED) or by facility name (GDELT), and remain flagged auto &middot; unverified until a curator confirms them.</li>
         <li><strong>Attacks</strong> — Russia-linked attacks on tankers 2022–2026: Ukrainian naval-drone and aerial-drone strikes, limpet-mine attacks, strikes hitting tankers inside Russian ports, and unexplained explosions on shadow-fleet vessels. Each incident requires ≥2 independent sources or one authoritative source (Reuters/AP/BBC/FT/official statements). Incidents with a known IMO link to the vessel detail panel. Strikes are cross-checked against NASA FIRMS satellite thermal anomalies — a strike with a matching anomaly at the facility within ±1 day is flagged 🛰 satellite-corroborated; standalone anomalies are shown only as a neutral thermal layer (they may be routine gas flaring).</li>

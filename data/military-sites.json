@@ -1,0 +1,1587 @@
+{
+  "sites": [
+    {
+      "id": "barnaul-cartridge-plant",
+      "name": "Barnaul Cartridge Plant",
+      "name_local": "Барнаульский патронный завод",
+      "lat": 53.361,
+      "lon": 83.764,
+      "category": "ammunition",
+      "produces": "Pistol cartridges (9x19 mm, 9x18 mm Makarov, .45 ACP), rifle cartridges (5.45x39, 7.62x39, 7.62x54R), 12-gauge shotgun shells; Bear, Centaur and Barnaul brands",
+      "operator": "BSZ Holding",
+      "region": "Altai Krai",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Founded during WWII evacuation 1941; address: 28 Kulagina St., Barnaul 656002; coordinates approximate (city-level); Poly Technologies identified supplying gunpowder to plant June 2023; no reported Ukrainian strikes",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Barnaul_Cartridge_Plant",
+        "https://grokipedia.com/page/Barnaul_Cartridge_Plant",
+        "https://ammoterra.com/company/barnaul-cartridge-plant"
+      ]
+    },
+    {
+      "id": "klimovsk-specialized-ammunition-plant",
+      "name": "Klimovsk Specialized Ammunition Plant",
+      "name_local": "Климовский специализированный патронный завод (КСПЗ)",
+      "lat": 55.379,
+      "lon": 37.549,
+      "category": "ammunition",
+      "produces": "Small-calibre cartridges: 7.62x39 mm, 9 mm pistol, underwater-weapons cartridges, hunting and sport ammunition",
+      "operator": "Rostec (transferred 2024, rescued from bankruptcy)",
+      "region": "Moscow Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Founded 1936 as plant #711; Rostec rescued from bankruptcy mid-2024 and began modernisation; coordinates from latitude.to satellite map",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Klimovsk_Specialized_Ammunition_Plant",
+        "https://latitude.to/satellite-map/ru/russian-federation/111584/klimovsk-specialized-ammunition-plant",
+        "https://www.opensanctions.org/entities/NK-XU28kjVMPCnboVstbogTer/"
+      ]
+    },
+    {
+      "id": "murom-instrument-making-plant",
+      "name": "Murom Instrument-Making Plant",
+      "name_local": "Муромский приборостроительный завод",
+      "lat": 55.576,
+      "lon": 42.054,
+      "category": "ammunition",
+      "produces": "Ammunition primers (Berdan, Boxer, shotshell types); initiation and ignition devices for all calibres used by Russian Armed Forces, Navy, Air Force, MVD, and FSB",
+      "operator": "Tekhmash / Rostec",
+      "region": "Vladimir Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-04-30",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "SBU drones struck overnight; five explosions, two buildings damaged, fire broke out; ~70 workers evacuated.",
+          "source_urls": [
+            "https://kyivindependent.com/ukrainian-drones-reportedly-strike-russian-igniting-ammunition-plant-in-vladimir-oblast/",
+            "https://www.ukrinform.net/rubric-ato/3987672-ukrainian-drones-hit-murom-instrumentmaking-plant-source.html"
+          ]
+        },
+        {
+          "occurred_on": "2025-05-27",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "11 drones in operation; 3 shot down, remainder struck targets; three buildings in industrial zone damaged; windows shattered in two workshops; ~70 workers evacuated; regional governor confirmed damage.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/ukrainian-long-range-drones-strike-major-russian-ammunition-component-manufacturer/",
+            "https://en.interfax.com.ua/news/general/1067971.html"
+          ]
+        }
+      ],
+      "notes": "Russia's largest ammunition-primer producer; address: 30 Let Pobedy St. 1a, Murom 602205; ~700 km from Ukrainian border; sanctioned by Ukraine and EU since 2023; coordinates approximate (city of Murom)",
+      "source_urls": [
+        "https://www.globalsecurity.org/military/world/russia/murom.htm",
+        "https://www.opensanctions.org/entities/NK-Dezzr2ADf4wgT46Vy7j4sV/",
+        "https://war-sanctions.gur.gov.ua/en/components/companies/8118"
+      ]
+    },
+    {
+      "id": "novosibirsk-cartridge-plant",
+      "name": "Novosibirsk Cartridge Plant",
+      "name_local": "Новосибирский патронный завод (НПЗ)",
+      "lat": 54.863,
+      "lon": 82.907,
+      "category": "ammunition",
+      "produces": "Small-arms cartridges (5.45x39, 7.62x39, 7.62x54R, 12.7x108 mm) for Russian Armed Forces and Rosgvardia; Sibfire brand sport and hunting ammunition",
+      "operator": "Private JSC (state defence contractor)",
+      "region": "Novosibirsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Founded 1939; address: 30A Stansionnaya St., Novosibirsk 630108; coordinates approximate (city-level); sanctioned by US (Dec 2023), EU, UK, Canada, Switzerland, Ukraine, Japan",
+      "source_urls": [
+        "https://www.opensanctions.org/entities/NK-gChPxJjeMAaD4trSHWZsVW/",
+        "https://war-sanctions.gur.gov.ua/en/sanctions/companies/6985",
+        "https://sibfire.com/en/about-us-novosibirsk-cartridge-plant-sibfire/"
+      ]
+    },
+    {
+      "id": "tula-cartridge-plant",
+      "name": "Tula Cartridge Plant",
+      "name_local": "Тульский патронный завод",
+      "lat": 54.197,
+      "lon": 37.622,
+      "category": "ammunition",
+      "produces": "Small-arms cartridges (7.62 mm, 9 mm, 5.45 mm, 12-gauge) for Russian military and law enforcement; TulAmmo civilian brand; repurposed production lines making artillery rounds (~7,000/month)",
+      "operator": "Private JSC",
+      "region": "Tula Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Founded 1880; address: Marata St. 139, Tula 300004; coordinates approximate (city-level); sanctioned post-2022; artillery production lines added under wartime pressure with safety incidents reported",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Tula_Cartridge_Plant",
+        "https://www.opensanctions.org/entities/NK-gwHs2kAZLSVqvd8GLR5xu8/",
+        "https://en.defence-ua.com/news/russians_produce_artillery_ammunition_at_tula_arms_plant_for_war_in_ukraine-10648.html"
+      ]
+    },
+    {
+      "id": "arzamas-machine-building-plant",
+      "name": "Arzamas Machine-Building Plant",
+      "name_local": "Арзамасский машиностроительный завод",
+      "lat": 55.3975,
+      "lon": 43.8597,
+      "category": "armor",
+      "produces": "BTR-80 and BTR-82 armored personnel carriers; Tigr infantry mobility vehicles",
+      "operator": "Military Industrial Company",
+      "region": "Nizhny Novgorod Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Primary serial producer of BTR-80/82 family; estimated 500+ APCs per year; city-level coordinates (Arzamas city center approximate)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Arzamas_Machine-Building_Plant",
+        "https://www.globalsecurity.org/military/world/russia/amz.htm",
+        "https://www.trenchart.us/p/simple-and-available-the-wheeled-btr-82-is-the-russian-militarys-vehicular-future"
+      ]
+    },
+    {
+      "id": "chelyabinsk-tractor-plant",
+      "name": "Chelyabinsk Tractor Plant (ChTZ-Uraltrak)",
+      "name_local": "Челябинский тракторный завод",
+      "lat": 55.15556,
+      "lon": 61.47333,
+      "category": "armor",
+      "produces": "V-92S2 diesel tank engines for T-72B3M and T-90M tanks (up to 1,000 hp)",
+      "operator": "Rostec / Uralvagonzavod",
+      "region": "Chelyabinsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Main supplier of tank engines for Uralvagonzavod; launched new ion-nitriding production section in February 2024 to triple engine output. 2023-11-26: explosion at transformer station, officially assessed as equipment failure, not confirmed attack.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Chelyabinsk_Tractor_Plant",
+        "https://militarnyi.com/en/news/russia-expands-tank-engine-production-with-new-facility-at-chelyabinsk-tractor-plan/",
+        "https://en.defence-ua.com/industries/russia_got_belarusian_furnaces_to_produce_engines_for_t_72b3_and_t_90m_tanks-9438.html"
+      ]
+    },
+    {
+      "id": "kurganmashzavod-kurgan",
+      "name": "Kurganmashzavod",
+      "name_local": "Курганмашзавод",
+      "lat": 55.4634,
+      "lon": 65.3297,
+      "category": "armor",
+      "produces": "BMP-3 and BMP-2 infantry fighting vehicles, BMD-4 airborne IFVs",
+      "operator": "Rostec / High Precision Systems",
+      "region": "Kurgan Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Sole serial producer of BMP-3 IFV; increased production 20% in 2024; running 12-hour shifts",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Kurganmashzavod",
+        "https://jamestown.org/russias-kurganmashzavod-factory-data-shows-the-limits-of-bmp-3-production-rates/",
+        "https://bulgarianmilitary.com/2025/04/09/rostec-triples-bmp-3-ifv-production-as-ukraine-losses-mount/"
+      ]
+    },
+    {
+      "id": "motovilikha-plants-perm",
+      "name": "Motovilikha Plants",
+      "name_local": "Мотовилихинские заводы",
+      "lat": 58.035,
+      "lon": 56.3,
+      "category": "armor",
+      "produces": "Tornado-G / Tornado-S multiple-launch rocket systems; Msta-B and Nona howitzers; self-propelled artillery",
+      "operator": "Rostec / NPO Splav",
+      "region": "Perm Krai",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Expanded production facilities in 2024-2025; Putin visited September 2025; facility reorganized under new management in early 2025",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Motovilikha_Plants",
+        "https://news-pravda.com/eu/2025/09/09/1669796.html",
+        "https://ua.news-pravda.com/en/world/2025/09/19/70597.html"
+      ]
+    },
+    {
+      "id": "omsktransmash-omsk",
+      "name": "Omsktransmash",
+      "name_local": "Омский завод транспортного машиностроения",
+      "lat": 54.98,
+      "lon": 73.37,
+      "category": "armor",
+      "produces": "T-80BVM tank modernization; TOS-1A heavy flamethrower systems",
+      "operator": "Rostec / Uralvagonzavod",
+      "region": "Omsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Primary T-80 refurbishment and upgrade facility; city-level coordinates (address: Krasny pereulok 2, Omsk)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Omsktransmash",
+        "https://bulgarianmilitary.com/2025/07/02/omsk-plant-supplies-new-t-80bvm-tanks-to-the-russian-army/",
+        "https://militarywatchmagazine.com/article/omsk-factory-russian-producing-tanks"
+      ]
+    },
+    {
+      "id": "uralvagonzavod-nizhny-tagil",
+      "name": "Uralvagonzavod",
+      "name_local": "УралВагонЗавод",
+      "lat": 57.93611,
+      "lon": 60.09722,
+      "category": "armor",
+      "produces": "T-90M and T-72B3M main battle tanks",
+      "operator": "Rostec",
+      "region": "Sverdlovsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Largest tank manufacturer in the world; operating 24-hour production cycle since 2022; delivered new batch of T-90M, T-80BVM, T-72B3M on Victory Day 2026",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Uralvagonzavod",
+        "https://www.zona-militar.com/en/2025/01/08/the-russian-ground-forces-received-new-batches-of-t-72b3m-and-t-90m-tanks-at-the-end-of-2024/",
+        "https://www.armyrecognition.com/news/army-news/2026/russia-delivers-new-t-90m-tanks-despite-sanctions-as-defense-industry-supports-ukraine-war"
+      ]
+    },
+    {
+      "id": "beriev-taganrog",
+      "name": "Beriev Aircraft Company (TANTK)",
+      "name_local": "Таганрогский авиационный научно-технический комплекс им. Г. М. Бериева",
+      "lat": 47.1989889,
+      "lon": 38.845,
+      "category": "aviation",
+      "produces": "A-50U AWACS repair/modernization; Tu-95/Tu-142 strategic bomber overhaul; Be-200 amphibious aircraft",
+      "operator": "Rostec / UAC",
+      "region": "Rostov Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-03-09",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Large Ukrainian drone swarm struck Beriev plant workshops; A-50U under repair was damaged. HUR confirmed successful strike; Ukrainian spokesman called it 'incredibly successful.' Russia claimed drones were repelled, contradicted by evidence.",
+          "source_urls": [
+            "https://www.kyivpost.com/post/29241",
+            "https://en.defence-ua.com/news/ukrainian_drones_attack_russian_aircraft_factory_known_for_a_50_repairs_and_be_200_production-9785.html",
+            "https://www.globaldefensecorp.com/2024/03/10/drones-hit-russian-aviation-plant-in-taganrog-destroying-350-million-beriev-a-50-early-warning-aircraft/",
+            "https://www.armyrecognition.com/focus-analysis-conflicts/army/conflicts-in-the-world/russia-ukraine-war-2022/breaking-news-ukrainian-drones-strike-a-50-awacs-aircraft-facility-in-taganrog-russia"
+          ]
+        },
+        {
+          "occurred_on": "2025-11-25",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Ukrainian drone strike destroyed the Beriev A-60 airborne laser aircraft (one of only two prototypes ever built) and an Il-76 on the facility's airfield, plus caused structural damage to the final assembly shop. Confirmed by satellite imagery.",
+          "source_urls": [
+            "https://theaviationist.com/2025/11/25/ukrainian-strike-beriev-plant-destroys-testbeds/",
+            "https://en.defence-ua.com/events/ukraine_destroys_a_60_and_experimental_a_100ll_in_taganrog_delivering_a_final_blow_to_russias_long_delayed_a_50_replacement_program-16620.html",
+            "https://www.armyrecognition.com/focus-analysis-conflicts/army/conflicts-in-the-world/russia-ukraine-war-2022/ukraine-destroys-russias-unique-beriev-a-60-airborne-laser-aircraft-in-taganrog-drone-strike",
+            "https://thedefensepost.com/2025/11/27/ukraine-russia-laser-aircraft/"
+          ]
+        },
+        {
+          "occurred_on": "2026-05-30",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Ukrainian Unmanned Systems Forces destroyed two Tu-142 aircraft undergoing repair at the Taganrog facility (including a rare Tu-142MR submarine communications relay aircraft) and an Iskander missile launcher.",
+          "source_urls": [
+            "https://theaviationist.com/2026/05/30/tu-142mr-ukrainian-drones-attack/",
+            "https://euromaidanpress.com/2026/05/30/ukrainian-drones-destroy-2-tu-142-aircraft-iskander-system-at-russian-airfield-in-taganrog/",
+            "https://defence-blog.com/ukraine-burns-two-russian-tu-142-naval-patrol-planes-in-taganrog/",
+            "https://www.pravda.com.ua/eng/news/2026/05/30/8037035/"
+          ]
+        }
+      ],
+      "notes": "Most-struck Russian aviation repair facility; lost A-50U, A-60 laser aircraft prototype, and two Tu-142s since 2024",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Beriev",
+        "https://www.globalsecurity.org/military/world/russia/tantk.htm"
+      ]
+    },
+    {
+      "id": "irkutsk-aviation-plant",
+      "name": "Irkutsk Aviation Plant",
+      "name_local": "Иркутский авиационный завод",
+      "lat": 52.352781,
+      "lon": 104.209439,
+      "category": "aviation",
+      "produces": "Su-30SM2 multirole fighters; Yak-130 jet trainers",
+      "operator": "Rostec / UAC / Yakovlev Corporation",
+      "region": "Irkutsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Delivered upgraded Su-30SM2 fighters to Russian Air Force in August 2024; also supplies Su-30SM to export clients",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Irkutsk_Aviation_Plant",
+        "https://bulgarianmilitary.com/2024/08/10/russian-irkutsk-plant-delivers-two-upgraded-su-30sm2s-to-vks/",
+        "https://www.armyrecognition.com/news/aerospace-news/2024/upgraded-su-30sm2-fighters-join-russian-aerospace-forces"
+      ]
+    },
+    {
+      "id": "kapo-kazan",
+      "name": "Kazan Aircraft Production Association (KAPO)",
+      "name_local": "Казанское авиационное производственное объединение имени С. П. Горбунова",
+      "lat": 55.8618167,
+      "lon": 49.115825,
+      "category": "aviation",
+      "produces": "Tu-160M strategic bombers (refurbishment and new-build from Soviet airframes); Tu-214 airliners",
+      "operator": "Rostec / UAC / Tupolev",
+      "region": "Republic of Tatarstan",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-04-17",
+          "weapon": "uav",
+          "severity": "unknown",
+          "summary": "Ukrainian long-range kamikaze drones struck the Kazan aviation plant. No damage details publicly confirmed by either side at time of reporting.",
+          "source_urls": [
+            "https://en.defence-ua.com/industries/what_is_known_about_the_aircraft_factory_in_kazan_for_producing_tu_22m3_and_tu_160_where_ukrainian_uavs_struck-10212.html",
+            "https://www.newsweek.com/ukraine-drone-strike-hits-kremlin-bomber-factory-russia-1891499"
+          ]
+        },
+        {
+          "occurred_on": "2025-01-20",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian kamikaze drones struck the factory airfield at approximately 05:00; fire broke out near KAPO-Composite hangar (fuel tank hit at coordinates 55.867 deg N 49.114 deg E). Airport suspended operations. Russian MoD claimed all drones were intercepted, contradicted by visible evidence.",
+          "source_urls": [
+            "https://en.defence-ua.com/news/long_range_kamikaze_drones_of_ukraines_defense_forces_attack_aviation_plant_in_kazan_producing_tu_160_and_tu_22m3_strategic_bombers-13262.html",
+            "https://militarnyi.com/en/news/drones-attacked-aircraft-factory-in-kazan/",
+            "https://www.themoscowtimes.com/2025/01/20/ukrainian-drones-target-industrial-plants-in-russias-tatarstan-a87662",
+            "https://bulgarianmilitary.com/2025/01/20/tu-160-bomber-kazan-factory-under-attack-by-ukrainian-drones/"
+          ]
+        }
+      ],
+      "notes": "Russia cannot build entirely new Tu-160/Tu-22M3 from scratch; uses Soviet-era unfinished airframes; 8,500 employees",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Kazan_Aircraft_Production_Association",
+        "https://en.defence-ua.com/industries/russias_strategic_aviation_crisis_failing_attempts_to_reproduce_the_tu_160_and_tu_22m3_at_the_kazan_aviation_plant-13264.html",
+        "https://defensemirror.com/news/38644/Fire_Erupts_in_Russia___s_Kazan_Tu_160_Aviation_Plant_Amid_Ukrainian_Drone_Attack"
+      ]
+    },
+    {
+      "id": "kazan-helicopters",
+      "name": "Kazan Helicopters",
+      "name_local": "Казанский вертолётный завод",
+      "lat": 55.83,
+      "lon": 49.07,
+      "category": "aviation",
+      "produces": "Mi-8/Mi-17 transport helicopters; Mi-38 medium helicopter; Ansat light helicopter",
+      "operator": "Rostec / Russian Helicopters",
+      "region": "Republic of Tatarstan",
+      "status": "operational",
+      "strikes": [],
+      "notes": "World's largest Mi-8/17 producer; delivered over 12,000 helicopters; planned production of 37+ Mi-8MTV-1 in 2026; coordinates approximate (western Kazan, Tetsovskaya St 14)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Kazan_Helicopters",
+        "https://dallas-analytics.com/russia-to-double-mi-8/",
+        "https://en.delachieve.com/helicopter-plant-kazan-history-description-photo-address/"
+      ]
+    },
+    {
+      "id": "klimov-st-petersburg",
+      "name": "UEC-Klimov",
+      "name_local": "АО «ОДК-Климов»",
+      "lat": 59.9839,
+      "lon": 30.3364,
+      "category": "aviation",
+      "produces": "TV3-117 / VK-2500 turboshaft engines for Mi-8/Mi-24/Mi-28/Ka-52 helicopters; RD-33 turbofan for MiG-29",
+      "operator": "Rostec / United Engine Corporation (ODK)",
+      "region": "Saint Petersburg",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Produces ~100 VK-2500 engines/year for combat helicopters; developing VK-650V to replace Western engines in Ansat helicopter",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Klimov",
+        "https://www.globalsecurity.org/military/world/russia/klimov.htm",
+        "https://ruavia.su/uec-will-produce-more-than-1500-helicopter-engines-by-2030/"
+      ]
+    },
+    {
+      "id": "knaaz-komsomolsk-on-amur",
+      "name": "Komsomolsk-on-Amur Aircraft Plant (KnAAZ)",
+      "name_local": "Комсомольский-на-Амуре авиационный завод имени Ю. А. Гагарина",
+      "lat": 50.59194,
+      "lon": 137.09028,
+      "category": "aviation",
+      "produces": "Su-57 fifth-generation stealth fighters; Su-35S multirole fighters",
+      "operator": "Rostec / UAC / Sukhoi",
+      "region": "Khabarovsk Krai",
+      "status": "damaged",
+      "strikes": [],
+      "notes": "Russia's sole serial Su-57 producer; by late 2025 only ~20-25 Su-57s delivered vs. 76-aircraft contract; new facilities opened for Su-57 fuel systems in 2024. 2026-04-11: massive fire destroyed Shop 46 (Su-57 composite components); cause not officially confirmed, no attack claim found in cited sources.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Komsomolsk-on-Amur_Aircraft_Plant",
+        "https://defence-blog.com/russia-expands-production-of-felon-fighter-jets/",
+        "https://ruavia.su/knaaz-expands-production-facilities-for-su-57-production/"
+      ]
+    },
+    {
+      "id": "naz-chkalov-novosibirsk",
+      "name": "Novosibirsk Aircraft Production Association (NAZ Chkalov)",
+      "name_local": "Новосибирский авиационный завод имени В. П. Чкалова",
+      "lat": 55.0675,
+      "lon": 82.9872,
+      "category": "aviation",
+      "produces": "Su-34 fighter-bomber; repairs and modernization of Su-24M",
+      "operator": "Rostec / UAC / Sukhoi",
+      "region": "Novosibirsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Sole serial producer of Su-34; delivered four batches of Su-34M in 2024; operating on three shifts with doubled pre-war production rate",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Novosibirsk_Aircraft_Production_Association_Plant",
+        "https://ruavia.su/the-novosibirsk-aircraft-plant-has-handed-over-to-the-russian-air-force-the-next-fourth-batch-of-su-34s-in-2024/",
+        "https://www.armyrecognition.com/news/aerospace-news/2025/russia-delivers-new-su-34-fighter-bombers-to-air-force-amid-wartime-production-surge"
+      ]
+    },
+    {
+      "id": "rostvertol-rostov",
+      "name": "Rostvertol",
+      "name_local": "Роствертол",
+      "lat": 47.256165,
+      "lon": 39.734277,
+      "category": "aviation",
+      "produces": "Mi-28N/NM attack helicopters; Mi-35M combat helicopters; Mi-26T heavy transport helicopters",
+      "operator": "Rostec / Russian Helicopters",
+      "region": "Rostov Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "World leader in heavy-lift helicopter manufacture; debris from December 2024 Rostov drone raid reported near plant perimeter - no confirmed direct strike on facility",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Rostvertol",
+        "https://www.globalsecurity.org/military/world/russia/rostvertol.htm",
+        "https://euromaidanpress.com/2024/12/18/ukrainian-drones-strike-rostov-oblast-targeting-key-military-facilities/"
+      ]
+    },
+    {
+      "id": "uec-saturn-rybinsk",
+      "name": "UEC Saturn (NPO Saturn)",
+      "name_local": "ПАО «ОДК-Сатурн»",
+      "lat": 58.044,
+      "lon": 38.834,
+      "category": "aviation",
+      "produces": "AL-31 series / AL-41 turbofans for Su-30/Su-35/Su-57; ship propulsion gas turbines",
+      "operator": "Rostec / United Engine Corporation (ODK)",
+      "region": "Yaroslavl Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "~23,000 employees; also produces SaM146 / PowerJet engines for Superjet 100; coordinates approximate (city-level, Rybinsk)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/UEC_Saturn",
+        "https://www.globalsecurity.org/military/world/russia/saturn.htm",
+        "https://frontierindia.com/rybinsk-design-bureau-85-years-of-russian-aircraft-engine-and-turbine-building/"
+      ]
+    },
+    {
+      "id": "ulan-ude-aviation-plant",
+      "name": "Ulan-Ude Aviation Plant (UUAP)",
+      "name_local": "Улан-Удэнский авиационный завод",
+      "lat": 51.85793,
+      "lon": 107.73772,
+      "category": "aviation",
+      "produces": "Mi-8T / Mi-171 / Mi-171Sh transport and assault helicopters",
+      "operator": "Rostec / Russian Helicopters",
+      "region": "Republic of Buryatia",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Has produced over 4,000 Mi-8 family helicopters; major export supplier; delivered 850th Mi-171 series helicopter during war period",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Ulan-Ude_Aviation_Plant",
+        "https://www.helicopterinvestor.com/news/82838/ulan-ude-plant-completes-850th-mi-171-helicopter/",
+        "https://war-sanctions.gur.gov.ua/en/tools/company/311"
+      ]
+    },
+    {
+      "id": "umpo-ufa",
+      "name": "Ufa Engine Industrial Association (UMPO)",
+      "name_local": "Уфимское моторостроительное производственное объединение",
+      "lat": 54.735,
+      "lon": 55.958,
+      "category": "aviation",
+      "produces": "AL-31F/AL-41F1S turbofan engines for Su-27/Su-30/Su-34/Su-35/Su-57 family",
+      "operator": "Rostec / United Engine Corporation (ODK)",
+      "region": "Republic of Bashkortostan",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Largest aero-engine complex in Russia; also produces helicopter transmission components; coordinates approximate (city-level, Ferina St 2, Ufa)",
+      "source_urls": [
+        "https://www.globalsecurity.org/military/world/russia/ufa.htm",
+        "https://centreforaviation.com/data/profiles/suppliers/ufa-engine-industrial-association-umpo",
+        "https://myfd.ru/en/ufa-aviation-plant-oao-ufa-engine-building-production-association/"
+      ]
+    },
+    {
+      "id": "alabuga-sez-drone-plant",
+      "name": "Yelabuga Drone Factory (Alabuga SEZ)",
+      "name_local": "Елабужский завод беспилотников (ОЭЗ «Алабуга»)",
+      "lat": 55.8214,
+      "lon": 52.0482,
+      "category": "drone",
+      "produces": "Shahed-136/Geran-2 loitering munitions and Albatross reconnaissance drones",
+      "operator": "Albatross / Alabuga SEZ (state-backed)",
+      "region": "Republic of Tatarstan",
+      "status": "operational",
+      "strikes": [
+        {
+          "occurred_on": "2024-04-02",
+          "weapon": "uav",
+          "severity": "minor",
+          "summary": "Ukrainian forces attacked using a modified civilian aircraft drone; local officials disputed extent of damage but a fire was reported at the site.",
+          "source_urls": [
+            "https://kyivindependent.com/tag/yelabuga-drone-factory/",
+            "https://en.wikipedia.org/wiki/Yelabuga_drone_factory"
+          ]
+        },
+        {
+          "occurred_on": "2025-06-15",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian A-22 towing unpowered glider struck final assembly shops, causing large-scale explosions and fires; one worker killed, 13 injured. Tatarstan head confirmed the attack.",
+          "source_urls": [
+            "https://euromaidanpress.com/2025/06/15/ukrainian-drone-strike-shahed-factory-yelabuga/",
+            "https://united24media.com/latest-news/ukraines-drone-raids-force-moscow-into-desperate-defenses-at-yelabuga-shahed-plant-11104"
+          ]
+        }
+      ],
+      "notes": "Producing ~170 Geran-2 drones/day as of spring 2025; ~26,000 total produced by mid-2025. Rapid expansion underway with hundreds of new residential and industrial buildings.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Yelabuga_drone_factory",
+        "https://beyondparallel.csis.org/a-closer-look-at-the-yelabuga-uav-factory/",
+        "https://isis-online.org/isis-reports/major-developments-at-alabuga-sez-point-to-significant-expansion-in-military-drone-production"
+      ]
+    },
+    {
+      "id": "iemz-kupol-izhevsk",
+      "name": "Izhevsk Electromechanical Plant (IEMZ Kupol)",
+      "name_local": "Ижевский электромеханический завод «Купол»",
+      "lat": 56.8908,
+      "lon": 53.3264,
+      "category": "drone",
+      "produces": "Garpiya-A1 (Shahed-type) kamikaze drones; Tor-M1/M2 and Osa-AKM SAM systems",
+      "operator": "Almaz-Antey",
+      "region": "Udmurt Republic",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-11-17",
+          "weapon": "uav",
+          "severity": "minor",
+          "summary": "Ukrainian drones struck the plant, damaging equipment in Tor missile and radar production workshops; one worker hospitalized. Evacuation of personnel reported.",
+          "source_urls": [
+            "https://liveuamap.com/en/2024/17-november-04-drones-reportedly-hit-kupol-plant-in-izhevsk",
+            "https://charter97.org/en/news/2024/11/17/619095/"
+          ]
+        },
+        {
+          "occurred_on": "2025-07-01",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Ukrainian Liutyi long-range drones struck four drone production workshops, halting operations. Three workers killed, 45 injured (35 hospitalized). Ukraine's General Staff confirmed the strike 1,300 km from front lines.",
+          "source_urls": [
+            "https://en.defence-ua.com/news/ukraines_liutyi_drones_halt_shahed_production_at_russias_kupol_plant_in_izhevsk-15019.html",
+            "https://www.themoscowtimes.com/2025/07/01/ukrainian-drone-attack-on-izhevsk-kills-3-and-wounds-dozens-more-a89625",
+            "https://kyivindependent.com/ukrainian-drones-target-russian-city-of-izhevsk-occupied-crimea-in-overnight-attack/"
+          ]
+        }
+      ],
+      "notes": "Has a 2025 contract for 6,000+ Garpiya drones (up from 2,000 in 2024); also Russia's second Shahed-type production site alongside Alabuga.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Izhevsk_Electromechanical_Plant",
+        "https://en.defence-ua.com/news/russia_ramps_up_drone_infrastructure_in_addition_to_alabuga_shahed_drones_now_produced_at_iemz_kupol-14191.html",
+        "https://united24media.com/latest-news/ukrainian-lyutiy-drones-strike-kupol-air-defense-plant-in-russia-9534"
+      ]
+    },
+    {
+      "id": "kronstadt-dubna-uav-plant",
+      "name": "Kronshtadt Group – Dubna Factory",
+      "name_local": "АО «Кронштадт», завод в Дубне",
+      "lat": 56.732,
+      "lon": 37.167,
+      "category": "drone",
+      "produces": "Orion/Inokhodets MALE strike drones; Sirius UAV; Banderol cruise missile",
+      "operator": "Kronshtadt Group (private, partly Sistema-linked)",
+      "region": "Moscow Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-05-28",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Ukrainian Liutyi drones struck the factory in a 155-drone night campaign; eight hits recorded on the workshop roof. Satellite imagery confirmed one-third or more of the final assembly hall destroyed. Third strike on the site overall.",
+          "source_urls": [
+            "https://en.defence-ua.com/news/brand_new_kronshtadt_factory_in_russian_dubna_on_fire_after_ukrainian_drone_attack-14665.html",
+            "https://militarnyi.com/en/news/satellite-images-reveal-damage-to-kronstadt-plant-s-production-workshop-following-strike/",
+            "https://militarnyi.com/en/news/drones-strike-kronshtadt-drone-factory-near-moscow/"
+          ]
+        }
+      ],
+      "notes": "Facility opened 2022 ($53 m investment); AO Kronshtadt near bankruptcy by August 2025 after strikes and mounting debts. Coordinates approximate (city-level Dubna).",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Kronshtadt_Group",
+        "https://united24media.com/latest-news/russias-top-drone-maker-faces-collapse-after-ukrainian-strikes-and-crushing-debts-11077"
+      ]
+    },
+    {
+      "id": "zala-aero-izhevsk",
+      "name": "ZALA Aero Group – Izhevsk Production Facility",
+      "name_local": "ZАЛА Аэро Груп, Ижевск",
+      "lat": 56.851,
+      "lon": 53.28,
+      "category": "drone",
+      "produces": "Lancet-1 and Lancet-3 loitering munitions; ZALA reconnaissance UAVs",
+      "operator": "Kalashnikov Concern (Rostec)",
+      "region": "Udmurt Republic",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Primary production at 40 Let Pobedy St 118, Izhevsk; supplemental production in converted shopping centres (Italmas, Novy Dom area). Novy Dom fire on 2024-02-17 (cause unconfirmed by Ukraine). Production tripled since 2022; ~7,000 Lancets used against Ukraine by late 2024.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/ZALA_Aero_Group",
+        "https://kyivindependent.com/how-russias-homegrown-lancet-drone-became-so-feared-in-ukraine/",
+        "https://euromaidanpress.com/2025/01/29/mall-to-military-russias-drone-makers-push-production-closer-to-ukraine/"
+      ]
+    },
+    {
+      "id": "elektrodetal-karachev",
+      "name": "Karachev Plant Elektrodetal",
+      "name_local": "АО «Карачевский завод «Электродеталь»",
+      "lat": 53.1271,
+      "lon": 35.0086,
+      "category": "electronics",
+      "produces": "Electrical connectors (25,000+ types) for aerospace, EW, radar, avionics; supplies 1,500+ Russian defence enterprises",
+      "operator": "Rostec (KRET)",
+      "region": "Bryansk Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-09-29",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Four Ukrainian R-360 Neptune cruise missiles struck from 240 km; large-scale fire broke out, potentially causing complete indefinite shutdown of operations.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/neptune-missile-strike-on-elektrodetal-plant-in-bryansk-region-details/",
+            "https://euromaidanpress.com/2025/09/29/general-staff-confirms-ukrainian-neptune-hits-russian-plant-in-bryansk-oblast-at-distance-of-240-km/",
+            "https://www.pravda.com.ua/eng/news/2025/09/29/8000360/"
+          ]
+        }
+      ],
+      "notes": "Part of KRET/Rostec; located ~113 km from Ukraine border. First known major direct strike on this facility was September 2025.",
+      "source_urls": [
+        "https://united24media.com/latest-news/drone-attack-hits-elektrodetal-factory-in-bryansk-key-producer-for-russian-defense-industry-12022",
+        "https://war-sanctions.gur.gov.ua/en/uav/companies/9931"
+      ]
+    },
+    {
+      "id": "krasnogorsky-zavod",
+      "name": "Krasnogorsky Zavod (KMZ / Zenit)",
+      "name_local": "ПАО «КМЗ»",
+      "lat": 55.83,
+      "lon": 37.35,
+      "category": "electronics",
+      "produces": "Military optical sights, fire-control systems for tanks and armoured vehicles, laser designators, aircraft surveillance systems (OPS-28M for Mi-28NM)",
+      "operator": "Rostec (Shvabe)",
+      "region": "Moscow Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "30 km from Moscow Red Square; founded 1941 as defence optics factory. Coordinates approximate (city-level).",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Krasnogorsky_Zavod",
+        "https://informnapalm.org/en/in-the-shadow-of-sanctions/"
+      ]
+    },
+    {
+      "id": "kremniy-el-bryansk",
+      "name": "Kremniy El Microelectronics Plant",
+      "name_local": "Завод «Кремний Эл»",
+      "lat": 53.2519,
+      "lon": 34.3335,
+      "category": "electronics",
+      "produces": "Military-grade microchips, power modules, semiconductor devices for Iskander, Pantsir, S-500, Kalibr systems",
+      "operator": "Rostec (KRET)",
+      "region": "Bryansk Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-10-19",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian drones struck the plant overnight; fire broke out in attic of a non-residential building, between 10-15 explosions recorded near the facility. Described as the fourth UAV attack on the enterprise.",
+          "source_urls": [
+            "https://newsukraine.rbc.ua/news/drones-strike-russia-s-kremniy-el-plant-in-1729323451.html",
+            "https://united24media.com/latest-news/drone-strike-hits-one-of-russias-largest-microelectronics-plant-in-bryansk-7920"
+          ]
+        },
+        {
+          "occurred_on": "2025-01-24",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Six drones struck production areas and storage facilities overnight; plant halted operations, power supply and assembly lines disrupted. No casualties reported.",
+          "source_urls": [
+            "https://www.themoscowtimes.com/2025/01/24/major-russian-microchip-factory-halts-production-after-ukrainian-drone-strikes-a87727",
+            "https://militarnyi.com/en/news/drone-shut-down-operation-of-kremniy-el-microelectronics-plant-in-bryansk/"
+          ]
+        },
+        {
+          "occurred_on": "2025-04-28",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Fifth recorded strike on the plant; 2-3 hits confirmed in factory workshop amid a 115-drone attack on Bryansk region. One person killed, one injured.",
+          "source_urls": [
+            "https://en.defence-ua.com/news/drone_attack_disrupts_strategic_russian_kremniy_el_electronics_plant_in_bryansk_with_over_100_uavs_targeting_the_site-14335.html",
+            "https://euromaidanpress.com/2025/04/28/russia-claims-massive-drone-attack-on-bryansk-where-microelectronics-plant-is-located/"
+          ]
+        },
+        {
+          "occurred_on": "2026-03-10",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Ukraine struck the plant with British-supplied Storm Shadow missiles; at least four large blasts recorded, 7 people killed, 29 hospitalized. Ukraine described it as part of systematic effort to reduce Russia's military-economic potential.",
+          "source_urls": [
+            "https://www.themoscowtimes.com/2026/03/10/ukrainian-missiles-strike-major-microchip-factory-in-bryansk-reports-a92184",
+            "https://www.kyivpost.com/post/71664"
+          ]
+        }
+      ],
+      "notes": "Supplies 90-94% of output to Russian Ministry of Defence; 800+ defense clients. Located ~110 km from Ukraine border.",
+      "source_urls": [
+        "https://en.defence-ua.com/industries/how_important_for_the_russian_defense_industry_is_the_kremniy_el_plant_locating_just_in_110_km_to_ukraines_border-7791.html",
+        "https://www.opensanctions.org/entities/NK-mZimbPviBCZ8d7BeGeK5nQ/"
+      ]
+    },
+    {
+      "id": "mikron-zelenograd",
+      "name": "Mikron Semiconductor Plant (Elma Technopark)",
+      "name_local": "АО «Микрон»",
+      "lat": 55.9825,
+      "lon": 37.1814,
+      "category": "electronics",
+      "produces": "Military-grade integrated circuits, RFID chips, power semiconductors; chips used in missile and payment systems",
+      "operator": "Rostec (Element group)",
+      "region": "Moscow (Zelenograd district)",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-05-28",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian strike drones hit the Elma Technopark housing Mikron; at least one building damaged by explosion and fire. Moscow mayor reported no serious casualties.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/drones-strike-russian-technopark-in-zelenograd/",
+            "https://www.themoscowtimes.com/2025/05/28/russias-silicon-valley-targeted-in-major-ukrainian-drone-assault-a89246"
+          ]
+        },
+        {
+          "occurred_on": "2026-05-17",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Repeat drone strike on Elma Technopark overnight 16-17 May 2026; fire at facility, powerful explosion reported by local residents. Part of a ~600-drone assault on Moscow region confirmed by Zelensky.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/drones-hit-elma-zelenograd-technopark-30-km-from-moscow/",
+            "https://united24media.com/war-in-ukraine/nearly-600-drones-swarm-moscow-region-in-largest-strike-yet-on-russias-war-industry-18884"
+          ]
+        }
+      ],
+      "notes": "Russia's largest domestic microelectronics manufacturer; 37 km northwest of Moscow centre. Technopark covers 60,000 sq m with 150+ resident firms.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Mikron_Group",
+        "https://charter97.org/en/news/2025/5/28/642265/"
+      ]
+    },
+    {
+      "id": "ryazan-grpz",
+      "name": "Ryazan State Instrument Plant (GRPZ)",
+      "name_local": "АО «ГРПЗ»",
+      "lat": 54.6269,
+      "lon": 39.7423,
+      "category": "electronics",
+      "produces": "Airborne weapons-control radars for Su-27, Su-30, Su-35, MiG-29, Su-57; helicopter radars for Mi-28N, Mi-35",
+      "operator": "Rostec (KRET)",
+      "region": "Ryazan Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Largest aircraft instrument manufacturer in Russia; no confirmed direct strikes as of June 2026. Coordinates approximate (city-level, Seminarskaya St 32).",
+      "source_urls": [
+        "https://www.globalsecurity.org/military/world/russia/ryazan-pribor.htm",
+        "https://war-sanctions.gur.gov.ua/en/tools/company/3509"
+      ]
+    },
+    {
+      "id": "ural-optical-mechanical-plant",
+      "name": "Ural Optical-Mechanical Plant (UOMZ)",
+      "name_local": "АО «ПО «УОМЗ»",
+      "lat": 56.8389,
+      "lon": 60.6057,
+      "category": "electronics",
+      "produces": "Military aircraft optical systems: bomb aiming, laser rangefinder-designators, targeting pods for Su-27, MiG-29, Tu-160, Mi-28NM",
+      "operator": "Rostec (Shvabe)",
+      "region": "Sverdlovsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "One of Russia's leading military optics enterprises; Yekaterinburg previously considered beyond drone range but now acknowledged as threatened as of 2026.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Urals_Optical-Mechanical_Plant",
+        "https://www.shvabe.com/en/about/company/uralskiy-optiko-mekhanicheskiy-zavod/o-kompanii-uomz/",
+        "https://war-sanctions.gur.gov.ua/en/tools/company/3367"
+      ]
+    },
+    {
+      "id": "vniir-progress-cheboksary",
+      "name": "VNIIR-Progress Plant",
+      "name_local": "АО «ВНИИР-Прогресс»",
+      "lat": 56.1032,
+      "lon": 47.2641,
+      "category": "electronics",
+      "produces": "Kometa CRPA anti-jamming GNSS antennas for Shahed drones, Iskander-M, Kalibr missiles, UMPK guided bomb kits",
+      "operator": null,
+      "region": "Chuvash Republic",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-06-09",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Two AN-196 Liutyi drones struck the facility after flying ~975 km, sparking a fire and causing plant to suspend operations temporarily.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/liutyi-strike-drones-halt-production-at-cheboksary-kometa-module-facility/",
+            "https://united24media.com/latest-news/ukrainian-drones-strike-cheboksary-plant-producing-jam-resistant-kometa-antennas-for-shahed-drones-13784"
+          ]
+        },
+        {
+          "occurred_on": "2025-07-05",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Repeat drone strike on VNIIR-Progress production workshop after June 2025 attack.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/strike-drones-hit-vniir-progress-production-workshop-in-cheboksary/"
+          ]
+        },
+        {
+          "occurred_on": "2026-06-05",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Ukrainian FP-5 Flamingo cruise missile struck the facility; powerful explosion, thick smoke visible across Cheboksary, significant damage to main workshop.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/flamingo-missile-strikes-kometa-antenna-manufacturer-vniir-progress-in-cheboksary/",
+            "https://www.kyivpost.com/post/77866"
+          ]
+        },
+        {
+          "occurred_on": "2026-06-10",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Second Flamingo strike within one week; satellite imagery showed main workshop practically completely destroyed, missile penetrated front of the building.",
+          "source_urls": [
+            "https://euromaidanpress.com/2026/06/10/strike-on-russian-defense-plant-progress-in-cheboksary-reported-for-second-time-in-under-a-week/",
+            "https://astra.press/english/2026/06/10/13374/",
+            "https://euromaidanpress.com/2026/06/11/strip-out-this-one-component-and-russias-drones-fly-blind-ukraine-found-factory-where-it-is-made/"
+          ]
+        }
+      ],
+      "notes": "Located ~1,000 km from Ukraine border; Kometa antennas allow Russian guided weapons to resist Ukrainian electronic warfare jamming.",
+      "source_urls": [
+        "https://euromaidanpress.com/2026/06/11/strip-out-this-one-component-and-russias-drones-fly-blind-ukraine-found-factory-where-it-is-made/",
+        "https://united24media.com/war-in-ukraine/ukraine-just-hit-one-of-russias-key-drone-and-missile-electronics-factories-crippling-production-19687"
+      ]
+    },
+    {
+      "id": "aleksin-chemical-plant",
+      "name": "Aleksin Chemical Plant",
+      "name_local": "Алексинский химический комбинат",
+      "lat": 54.507,
+      "lon": 37.064,
+      "category": "explosives",
+      "produces": "Nitrocellulose (pyroxyline gunpowder) and chemical precursors for gunpowder and weapons charges; supplies Russian cartridge and ammunition plants",
+      "operator": "Rostec (federal state enterprise)",
+      "region": "Tula Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-11-09",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "SSU and Special Operations Forces launched at least 13 drones; gunpowder production shop caught fire with orange acid smoke; second explosion at 13:10; 110 kV power line damaged; operations halted and staff evacuated.",
+          "source_urls": [
+            "https://newsukraine.rbc.ua/news/chemical-plant-attacked-in-tula-region-says-1731147417.html",
+            "https://en.defence-ua.com/news/ukrainian_drone_strike_russian_powder_plant_in_tula-12475.html",
+            "https://babel.ua/en/news/112489-babel-sources-attacked-russian-aleksin-chemical-plant-explodes-and-smokes"
+          ]
+        },
+        {
+          "occurred_on": "2025-08-30",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "DIU drones struck an underground pyroxyline gunpowder depot at the plant; large fire and powerful explosions reported by local residents.",
+          "source_urls": [
+            "https://united24media.com/latest-news/underground-ammunition-depot-in-russians-tula-region-hit-by-drone-strikes-11235",
+            "https://militarnyi.com/en/news/diu-destroyed-underground-gunpowder-depot-in-russia-s-tula-region/"
+          ]
+        }
+      ],
+      "notes": "Sanctioned by US (2023) and EU (Feb 2024); address: 21 Pobedy Square, Aleksin 301361; ~320 km from Ukrainian border; coordinates from Yandex/latitude.to for city of Aleksin",
+      "source_urls": [
+        "https://www.opensanctions.org/entities/NK-geyVsJ9B6fZiZwNgpg2sZQ/",
+        "https://newsukraine.rbc.ua/news/chemical-plant-attacked-in-tula-region-says-1731147417.html",
+        "https://united24media.com/latest-news/drone-attack-targets-military-chemical-plant-in-russias-tula-region-3621"
+      ]
+    },
+    {
+      "id": "biysk-oleum-plant",
+      "name": "Biysk Oleum Plant (BOZ)",
+      "name_local": "Бийский олеумный завод (БОЗ)",
+      "lat": 52.489,
+      "lon": 85.014,
+      "category": "explosives",
+      "produces": "TNT and HMX (octogen) military explosives; new RDX (hexogen) production line under construction rated 6,000 tonnes/year",
+      "operator": "Sverdlov Plant / Rostec",
+      "region": "Altai Krai",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Remote Siberian location (~3,000 km from Moscow) deliberately chosen to evade Ukrainian drone range; construction value 15.5 billion rubles; Reuters confirmed via procurement documents; coordinates from wikimapia warehouse reference (52 deg 29'N 85 deg 0'E)",
+      "source_urls": [
+        "https://united24media.com/latest-news/russia-builds-new-explosives-plant-in-siberia-to-shield-it-from-long-range-ukrainian-strikes-8225",
+        "https://militarnyi.com/en/news/russia-builds-new-explosives-plant-in-siberia-reuters/",
+        "https://www.themoscowtimes.com/2025/05/08/siberian-arms-plant-expanding-to-produce-high-powered-explosives-reuters-a89022"
+      ]
+    },
+    {
+      "id": "kazan-gunpowder-plant",
+      "name": "Kazan State Gunpowder Plant",
+      "name_local": "Казанский государственный казённый пороховой завод",
+      "lat": 55.817,
+      "lon": 49.033,
+      "category": "explosives",
+      "produces": "Pyroxylin gunpowder and propellant charges for small arms (5.45-14.5 mm), artillery (76-152 mm), tank ammunition (125 mm T-72/T-80/T-90), naval and aviation weapons; ~20% of Russia's army powder charges",
+      "operator": "Spetskhimiya JSC / Rostec",
+      "region": "Republic of Tatarstan",
+      "status": "damaged",
+      "strikes": [],
+      "notes": "Oldest Russian gunpowder plant (founded 1786); EU and US sanctioned 2023; fire in propellant charge workshop reportedly cut production 20-30%; address: Pervogo Maya St. 14, Kazan 420032. 2026-04-14: building destroyed in explosion officially classified as technogenic (pressure-relief system failure); no attack claimed.",
+      "source_urls": [
+        "https://www.occrp.org/en/investigation/central-asian-cotton-powers-russias-sanctioned-gunpowder-plants",
+        "https://www.opensanctions.org/entities/NK-oZ8qvgNYddDmihkKAQuf9K/",
+        "https://en.defence-ua.com/news/russias_kazan_gunpowder_plant_is_under_surveillance_by_ukrainian_partisans-11344.html"
+      ]
+    },
+    {
+      "id": "perm-powder-plant",
+      "name": "Perm Powder Plant",
+      "name_local": "Пермский пороховой завод",
+      "lat": 57.992,
+      "lon": 55.936,
+      "category": "explosives",
+      "produces": "Gunpowder and solid-fuel propellant charges for Grad, Smerch, Tornado MLRS; Pantsir-S and other air-defence missiles; Kh-59 series air-launched cruise missiles; naval munitions; components for Topol-M and Bulava strategic missiles",
+      "operator": "Spetskhimiya JSC / Technodinamika JSC / Rostec",
+      "region": "Perm Krai",
+      "status": "operational",
+      "strikes": [],
+      "notes": "One of Russia's largest defence-sector powder plants; address: Galperina St. 11, Perm 614101; produces components for 100+ weapon systems; ~1,700 km from Ukrainian border; under US, EU, UK sanctions; coordinates from Yandex Maps for address",
+      "source_urls": [
+        "https://war-sanctions.gur.gov.ua/en/components/companies/7128",
+        "https://www.opensanctions.org/entities/NK-WmPwTyvMsgzeazp4iHG6Rw/",
+        "https://bulgarianmilitary.com/2025/03/04/explosions-rock-perm-factory-key-to-russias-arms-supplies/",
+        "https://united24media.com/war-in-ukraine/the-uzbek-cotton-behind-russias-missile-strikes-15836"
+      ]
+    },
+    {
+      "id": "promsintez-chapayevsk",
+      "name": "Promsintez JSC",
+      "name_local": "АО «Промсинтез»",
+      "lat": 52.942,
+      "lon": 49.694,
+      "category": "explosives",
+      "produces": "Military and industrial explosives: ammonal, ammonite, granulite, TNT; supplied to equip artillery shells, aerial bombs, and missiles; >30,000 tonnes/year capacity",
+      "operator": "Private JSC (sanctioned)",
+      "region": "Samara Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-04-05",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "SBU loitering munitions flew ~1,500 km to strike the plant; at least 20 explosions and several fires recorded; ~1 tonne of nitric acid spilled; management suspended all production.",
+          "source_urls": [
+            "https://newsukraine.rbc.ua/news/ukrainian-drones-strike-major-explosives-1743856109.html",
+            "https://en.lb.ua/news/2025/04/05/35486_sbu_drones_attack_russian_plant.html",
+            "https://www.kyivpost.com/post/50240"
+          ]
+        },
+        {
+          "occurred_on": "2026-03-28",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Ukrainian FP-5 Flamingo cruise missile struck the explosives synthesis production area; explosion confirmed on video by local witnesses; follows the April 2025 production halt.",
+          "source_urls": [
+            "https://en.defence-ua.com/news/ukrainian_fp_5_flamingo_missile_hits_plant_of_the_leading_explosives_manufacturer_in_russia_video-17976.html",
+            "https://militarnyi.com/en/news/flamingo-strike-russian-explosives-plant/",
+            "https://www.pravda.com.ua/eng/news/2026/03/28/8027584/"
+          ]
+        }
+      ],
+      "notes": "Leading CIS explosives manufacturer; located ~850 km from Ukrainian border; coordinates from OSINT-confirmed strike location (52.942, 49.694)",
+      "source_urls": [
+        "https://en.defence-ua.com/news/ukrainian_fp_5_flamingo_missile_hits_plant_of_the_leading_explosives_manufacturer_in_russia_video-17976.html",
+        "https://news.liga.net/en/war/news/ukraine-strikes-at-strategic-chemical-plant-in-russia",
+        "https://euromaidanpress.com/2026/03/28/ukraines-flamingo-missiles-hit-munitions-factory-in-samara-oblast/"
+      ]
+    },
+    {
+      "id": "sverdlov-plant-dzerzhinsk",
+      "name": "Ya. M. Sverdlov Plant",
+      "name_local": "Завод имени Я.М. Свердлова",
+      "lat": 56.268,
+      "lon": 43.378,
+      "category": "explosives",
+      "produces": "RDX (hexogen) and HMX (octogen) military-grade explosives; aerial bombs; artillery shell warheads; anti-tank and air-defence missile warheads",
+      "operator": "Rostec (federal state enterprise)",
+      "region": "Nizhny Novgorod Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-10-20",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Dozens of Ukrainian-made strike drones operated by SSU, SOF, and DIU struck overnight; thick smoke column over plant; four fire-station employees lightly wounded.",
+          "source_urls": [
+            "https://www.themoscowtimes.com/2024/10/20/ukraine-drones-target-major-russian-explosive-plant-a86752",
+            "https://militarnyi.com/en/news/ukrainian-drones-damaged-facilities-at-dzerzhinsk-explosives-plant/",
+            "https://www.kyivpost.com/post/40813"
+          ]
+        },
+        {
+          "occurred_on": "2025-04-01",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Three drones damaged a pipeline trestle overpass and two workshops; hexogen/octogen production workshop confirmed hit by Ukrainian intelligence sources.",
+          "source_urls": [
+            "https://united24media.com/latest-news/ukrainian-drones-hit-explosives-plant-in-russias-dzerzhinsk-damaging-key-facilities-7498",
+            "https://militarnyi.com/en/news/drone-strike-hits-explosives-factory-in-dzerzhinsk/"
+          ]
+        },
+        {
+          "occurred_on": "2025-10-06",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Wave of ~20 Ukrainian drones struck the plant; 25-30 explosions reported by residents, large fire visible across the city; Ukraine General Staff confirmed the strike.",
+          "source_urls": [
+            "https://newsukraine.rbc.ua/news/drones-hit-explosives-plant-in-russia-s-dzerzhinsk-1759737221.html",
+            "https://www.kyivpost.com/post/61527",
+            "https://united24media.com/latest-news/drone-raid-on-russias-major-explosives-factory-ukraine-targets-heart-of-kremlins-shell-production-12237"
+          ]
+        }
+      ],
+      "notes": "Russia's only producer of HMX and RDX; 1,100-hectare site with ~5,000 employees; ~900 km from Ukrainian border; coordinates from OSINT (Tendar/X: 56°16'6.29\"N 43°22'43.93\"E)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Ya._M._Sverdlova_State_Owned_Enterprise",
+        "https://www.newsweek.com/russia-sverdlov-explosives-plant-ukraine-drone-attacks-dzerzhinsk-nizhny-novgorod-1971796",
+        "https://www.opensanctions.org/entities/NK-RvS5jL6GohsmbgY5yScM8u/"
+      ]
+    },
+    {
+      "id": "tambov-gunpowder-plant-kotovsk",
+      "name": "Tambov Gunpowder Plant",
+      "name_local": "Тамбовский пороховой завод",
+      "lat": 52.587,
+      "lon": 41.505,
+      "category": "explosives",
+      "produces": "Smokeless pyroxylin powder for small arms, artillery shells, mortar rounds, grenade launchers, and tank rounds; nitrocellulose; over 200 product types",
+      "operator": "Rostec",
+      "region": "Tambov Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2023-11-01",
+          "weapon": "uav",
+          "severity": "minor",
+          "summary": "Ukrainian military intelligence (HUR) drone attack on the facility; fire and disruption reported.",
+          "source_urls": [
+            "https://kyivindependent.com/ukrainian-drone-hits-gunpowder-plant-in-russia-source-says/"
+          ]
+        },
+        {
+          "occurred_on": "2024-07-04",
+          "weapon": "uav",
+          "severity": "minor",
+          "summary": "HUR kamikaze drones struck the plant in Kotovsk; explosion confirmed on video; Russian officials denied damage but production disruption reported.",
+          "source_urls": [
+            "https://kyivindependent.com/ukrainian-drone-hits-gunpowder-plant-in-russia-source-says/",
+            "https://www.kyivpost.com/post/54324"
+          ]
+        },
+        {
+          "occurred_on": "2025-06-11",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Overnight drone strike triggered up to 15 explosions; fire broke out; operations paused per Ukraine's Center for Countering Disinformation.",
+          "source_urls": [
+            "https://united24media.com/latest-news/drone-strike-hits-major-russian-ammo-plant-in-tambov-sparks-15-explosions-9029",
+            "https://kyivindependent.com/fire-explosions-reported-at-gunpowder-plant-in-russias-tombov-oblast-amid-drone-attack/",
+            "https://charter97.org/en/news/2025/6/11/643906/"
+          ]
+        },
+        {
+          "occurred_on": "2025-07-25",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Drone attack on the Kotovsk plant sparked a confirmed fire; OSINT analysts verified footage as authentic.",
+          "source_urls": [
+            "https://charter97.org/en/news/2025/7/25/649530/",
+            "https://militarnyi.com/en/news/gunpowder-factory-in-tambov-region-catches-fire-after-drone-attack/"
+          ]
+        }
+      ],
+      "notes": "One of Russia's largest smokeless-powder producers; ~360 km from Ukrainian border; production increased ~one-third since Feb 2022; coordinates approximate (city of Kotovsk)",
+      "source_urls": [
+        "https://kyivindependent.com/ukrainian-drone-hits-gunpowder-plant-in-russia-source-says/",
+        "https://united24media.com/latest-news/drone-strike-hits-major-russian-ammo-plant-in-tambov-sparks-15-explosions-9029",
+        "https://www.trenchart.us/p/russia-has-10-gunpowder-factories"
+      ]
+    },
+    {
+      "id": "arzamas-instrument-building-plant",
+      "name": "Arzamas Instrument-Building Plant",
+      "name_local": "АО «Арзамасский приборостроительный завод им. П.И. Пландина»",
+      "lat": 55.391,
+      "lon": 43.836,
+      "category": "missile",
+      "produces": "Gyroscopic instruments, control systems, onboard computers and steering gears for Kh-101 and Kh-32 cruise missiles",
+      "operator": "Almaz-Antey",
+      "region": "Nizhny Novgorod Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-08-11",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Four SBU Special Operations Center 'A' long-range drones struck production facilities at 3:55 a.m. Roof damaged, windows shattered, equipment destroyed. One worker killed, two injured. Russian governor Nikitin confirmed the attack on two industrial zones.",
+          "source_urls": [
+            "https://kyivindependent.com/1-killed-2-injured-as-drones-strike-aerospace-plant-in-russias-nizhny-novgorod-oblast/",
+            "https://en.defence-ua.com/news/producer_of_kh_101_kh_32_long_range_missiles_in_arzamas_struck_by_ukraine-15433.html",
+            "https://euromaidanpress.com/2025/08/11/drone-strikes-military-aerospace-plant-deep-inside-russia-to-degrade-war-machine/"
+          ]
+        }
+      ],
+      "notes": "Located at 50 Let VLKSM St 8a, Arzamas. 759 km from Ukraine's border. ~90% of output under state defense contracts; over 6,000 employees. On EU, US, Ukraine, and New Zealand sanctions lists.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Arzamas_Instrument-Building_Plant",
+        "https://united24media.com/latest-news/russian-missile-parts-factory-for-kh-101-kh-32-hit-hard-in-deep-strike-video-10615"
+      ]
+    },
+    {
+      "id": "avitek-kirov",
+      "name": "VMP Avitek – Kirov Plant",
+      "name_local": "АО «ВМП «АВИТЕК», Киров",
+      "lat": 58.59,
+      "lon": 49.66,
+      "category": "missile",
+      "produces": "9M334 Tor SAM missile modules; S-400 component missiles; aircraft armaments and ejection seats",
+      "operator": "Almaz-Antey",
+      "region": "Kirov Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Located at Oktyabrsky Prospekt 1A, Kirov. Coordinates approximate (city-level). One of three key Almaz-Antey plants modernized for S-400 surge production. Added to EU sanctions March 2024.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Avitek",
+        "https://www.opensanctions.org/entities/NK-JJigLmQuDihXMtA7LLUNfp/"
+      ]
+    },
+    {
+      "id": "dolgoprudny-dnpp",
+      "name": "Dolgoprudnenskoe Scientific Production Plant (DNPP)",
+      "name_local": "АО «Долгопрудненское научно-производственное предприятие» (ДНПП)",
+      "lat": 55.947,
+      "lon": 37.5,
+      "category": "missile",
+      "produces": "Buk-M1-2 surface-to-air missiles (9M317, 9M38M1); Shtil-1 naval SAMs",
+      "operator": "Almaz-Antey (56.8% stake)",
+      "region": "Moscow Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Located at Sobina Square 1, Dolgoprudny, Moscow Oblast. Founded 1931 (originally dirigible production); producing SAMs since 1960. Coordinates approximate (city-level Dolgoprudny).",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Dolgoprudnenskoe_Scientific_Production_Plant",
+        "https://uamission.com/sanctions/sanctioned-entities/oao-dolgoprudny-research-production-enterprise/"
+      ]
+    },
+    {
+      "id": "kbp-tula-pantsir-plant",
+      "name": "KBP Instrument Design Bureau – Shcheglovsky Val Plant",
+      "name_local": "АО «КБП» / Щегловский Вал, Тула",
+      "lat": 54.227,
+      "lon": 37.698,
+      "category": "missile",
+      "produces": "Pantsir-S1 short-range SAM/gun systems; Kornet ATGM; Krasnopol guided shells; Tunguska AAA",
+      "operator": "High Precision Systems (Rostec)",
+      "region": "Tula Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2024-01-21",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian Defense Intelligence drones struck the Shcheglovsky Val plant, causing explosions and fire in the Proletarian district. Ukraine confirmed the attack on Pantsir production facilities.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/ukrainian-drones-hit-pantsir-s1-production-plant-in-russian-tula/",
+            "https://www.kyivpost.com/post/27003"
+          ]
+        },
+        {
+          "occurred_on": "2025-05-07",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian drones struck two defense enterprises simultaneously — KBP and NPO Splav — causing fires and damage confirmed by Cyberboroshno satellite analysis.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/drone-strike-targets-pantsir-s1-manufacturer-in-tula/",
+            "https://united24media.com/latest-news/drone-strike-rocks-russian-defense-hub-in-tula-multiple-explosions-reported-overnight-8561"
+          ]
+        },
+        {
+          "occurred_on": "2025-06-18",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "Ukrainian drones struck KBP twice within 72 hours (June 18 and 20), destroying electrical substation, storage warehouses, administrative building, and a loading hangar. Plant halted production.",
+          "source_urls": [
+            "https://kyivinsider.com/ukrainian-drones-strike-high-profile-russian-weapons-plant-twice-in-three-days-halting-production/"
+          ]
+        }
+      ],
+      "notes": "Coordinates from Cyberboroshno OSINT geolocation (54.226747, 37.697645). Founded 1927; ~8,600 employees. Also known as Shipunov KBP.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/KBP_Instrument_Design_Bureau",
+        "https://www.globalsecurity.org/military/world/russia/kbp.htm"
+      ]
+    },
+    {
+      "id": "mkb-raduga-dubna",
+      "name": "MKB Raduga (Bereznyak Machine-Building Design Bureau)",
+      "name_local": "МКБ «Радуга» им. А.Я. Березняка, Дубна",
+      "lat": 56.733,
+      "lon": 37.167,
+      "category": "missile",
+      "produces": "Kh-101/Kh-55 strategic cruise missiles; Kh-69, Kh-59MK, Kh-32 air-to-surface missiles",
+      "operator": "Tactical Missiles Corporation (KTRV)",
+      "region": "Moscow Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-05-28",
+          "weapon": "uav",
+          "severity": "major",
+          "summary": "SBU long-range drones bypassed Moscow air defences and struck assembly and equipment workshops, setting them on fire. Part of Ukraine's largest-ever drone campaign (296 UAVs total that night). SBU confirmed the strike.",
+          "source_urls": [
+            "https://euromaidanpress.com/2025/05/28/ukraine-hits-russian-cruise-missile-factory-near-moscow-with-long-range-drones/",
+            "https://en.interfax.com.ua/news/general/1075457.html",
+            "https://kyivindependent.com/ukrainian-drones-shot-down-over-moscow-mayor-claims/"
+          ]
+        }
+      ],
+      "notes": "Plant located in Dubna, 130 km north of Moscow, at Zhukovsky St 2a. Produces cruise missiles Russia uses in daily strikes on Ukraine.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/MKB_Raduga",
+        "https://www.molfar.institute/en/fabryka-raketnogo-teroru-de-i-yak-rosiyany-buduyut-rakety,-yakymy-obstrilyuyut-ukrainu/"
+      ]
+    },
+    {
+      "id": "nizhny-novgorod-70th-anniversary-plant",
+      "name": "Nizhny Novgorod 70th Anniversary of Victory Plant",
+      "name_local": "АО «НЗ 70-летия Победы», Нижний Новгород",
+      "lat": 56.326,
+      "lon": 43.897,
+      "category": "missile",
+      "produces": "S-400 Triumf air defense missile systems; S-500 Prometey; Vityaz S-350; Nebo-M and Nioby radars",
+      "operator": "Almaz-Antey",
+      "region": "Nizhny Novgorod Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Located at Sormovskoe Shosse 21, Nizhny Novgorod. Opened 2016 by Putin; part of major Almaz-Antey S-400 production surge (output reportedly 4x higher in 2025 vs pre-war). Coordinates reference Nizhny Novgorod Machine-building Plant in Sormovo district (same campus area).",
+      "source_urls": [
+        "https://en.kremlin.ru/events/president/news/51592",
+        "https://dfnc.ru/en/industry/defence-industry/almaz-antey-concern-builds-new-plants-reaching-a-new-level-in-production-of-air-defense-missile-systems/",
+        "https://www.opensanctions.org/entities/fr-ga-5210/"
+      ]
+    },
+    {
+      "id": "npo-novator-yekaterinburg",
+      "name": "NPO Novator (OKB Novator)",
+      "name_local": "АО «ОКБ «Новатор», Екатеринбург",
+      "lat": 56.88,
+      "lon": 60.61,
+      "category": "missile",
+      "produces": "3M54 Kalibr cruise missile family (ship/sub/air-launched); 9M729 ground-launched cruise missile; S-300V missiles",
+      "operator": "Almaz-Antey",
+      "region": "Sverdlovsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Co-located with Kalinin Machine-Building Plant (MZiK) at Prospekt Kosmonavtov 18, Yekaterinburg. ~30 Kalibr missiles/month production rate by late 2024. Never publicly struck; deep in Urals.",
+      "source_urls": [
+        "https://www.molfar.institute/en/yak-dkb-novator-stvoryue-zagrozu-dlya-ukrainy-i-svitu/",
+        "https://military-history.fandom.com/wiki/NPO_Novator",
+        "https://en.wikipedia.org/wiki/Kalibr_(missile_family)"
+      ]
+    },
+    {
+      "id": "npo-splav-tula",
+      "name": "NPO Splav – Tula MLRS Plant",
+      "name_local": "АО «НПО «СПЛАВ», Тула",
+      "lat": 54.222,
+      "lon": 37.693,
+      "category": "missile",
+      "produces": "BM-21 Grad, BM-30 Smerch, Tornado-G/S multiple launch rocket systems and rockets; TOS-1A heavy flamethrower rockets",
+      "operator": "Techmash / Rostec",
+      "region": "Tula Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-05-07",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian drones struck a production building of NPO Splav, confirmed by Cyberboroshno OSINT with photographic evidence showing smoke and fires about 330 km from Ukraine.",
+          "source_urls": [
+            "https://euromaidanpress.com/2025/05/26/ukrainian-drones-target-russian-rocket-plant-in-tula-for-the-third-time-this-month/",
+            "https://censor.net/en/news/3553782/drone-strike-hits-tula-on-may-22-splav-defense-plant-targeted"
+          ]
+        },
+        {
+          "occurred_on": "2025-05-22",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Second strike that month; a functioning workshop and an electrical substation caught fire. Damage confirmed by local reports.",
+          "source_urls": [
+            "https://euromaidanpress.com/2025/05/26/ukrainian-drones-target-russian-rocket-plant-in-tula-for-the-third-time-this-month/",
+            "https://odessa-journal.com/ukraine-hits-missile-and-mlrs-manufacturing-plant-in-tula-for-the-second-time-in-a-month"
+          ]
+        }
+      ],
+      "notes": "Russia's only MLRS designer-producer. Address: Shcheglovsky Val area, Tula. Coordinates from OSINT reporting (54.222495, 37.692874).",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/NPO_Splav",
+        "https://militarnyi.com/en/news/drones-launch-another-attack-on-tornado-s-mlrs-facility-in-tula/"
+      ]
+    },
+    {
+      "id": "obukhov-plant-st-petersburg",
+      "name": "Obukhov State Plant (GOZ Obukhovsky Plant)",
+      "name_local": "Государственный обуховский завод (ГОЗ), Санкт-Петербург",
+      "lat": 59.862,
+      "lon": 30.477,
+      "category": "missile",
+      "produces": "S-400 Triumf and S-350 Poliment-Redut SAM missile launchers and components; S-300V4 systems; S-500 components",
+      "operator": "Almaz-Antey",
+      "region": "Saint Petersburg",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Located at Obukhovskoy Oborony pr. 120, St Petersburg. Doubled S-400/S-350 missile output in 2025. Ukrainian ATESH partisans conducted reconnaissance in May 2025 but no strike reported.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Obukhov_State_Plant",
+        "https://en.defence-ua.com/news/ukrainian_partisans_conducted_reconnaissance_of_russian_obukhov_state_plant_in_st_petersburg-14382.html",
+        "https://militarywatchmagazine.com/article/russia-doubles-missile-production-s400"
+      ]
+    },
+    {
+      "id": "po-strela-orenburg",
+      "name": "PO Strela – Orenburg Production Association",
+      "name_local": "АО «ПО «Стрела», Оренбург",
+      "lat": 51.77,
+      "lon": 55.1,
+      "category": "missile",
+      "produces": "P-800 Oniks anti-ship cruise missile components; Su/MiG aircraft systems; Kh-35 missile components",
+      "operator": "NPO Mashinostroyeniya / Tactical Missiles Corporation",
+      "region": "Orenburg Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Located at Shevchenko St 26, Orenburg (460005). ATESH partisans scouted plant coordinates in November 2025. Coordinates approximate (city-level Orenburg). 2026-05-12: Ukrainian drone struck residential building ~4 km from the plant; no direct hit on the plant confirmed.",
+      "source_urls": [
+        "https://www.ukrinform.net/rubric-ato/4059062-in-orenburg-partisans-gather-intelligence-on-manufacturer-of-oniks-highprecision-missiles.html",
+        "https://www.globalsecurity.org/military/world/russia/strela.htm"
+      ]
+    },
+    {
+      "id": "smolensk-aviation-plant",
+      "name": "Smolensk Aviation Plant",
+      "name_local": "АО «Смоленский авиационный завод»",
+      "lat": 54.819,
+      "lon": 32.044,
+      "category": "missile",
+      "produces": "Kh-59 Ovod air-to-surface missiles; Kh-55 strategic cruise missiles; Kh-101 components",
+      "operator": "Tactical Missiles Corporation (KTRV)",
+      "region": "Smolensk Oblast",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2025-01-21",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Ukrainian Chaklun-V long-range kamikaze UAVs struck production infrastructure; one drone hit the production building while a second was shot down. GUR confirmed the attack disrupted Kh-59 production.",
+          "source_urls": [
+            "https://en.defence-ua.com/analysis/ukrainian_chaklun_v_uavs_hit_smolensk_aviation_plant_where_su_25_aircraft_are_being_modernized-13271.html",
+            "https://euromaidanpress.com/2025/01/21/ukraine-debuts-new-drones-in-smolensk-plant-strike-says-military-expert/"
+          ]
+        },
+        {
+          "occurred_on": "2025-10-12",
+          "weapon": "uav",
+          "severity": "moderate",
+          "summary": "Explosions and smoke reported at the aviation plant; OSINT confirmed strike location near production facilities. Local residents documented the event.",
+          "source_urls": [
+            "https://euromaidanpress.com/2025/10/12/explosions-rock-smolensk-aviation-plant-that-builds-kh%E2%80%9159-missiles-videos-show-smoke-rising-near-the-site/",
+            "https://militarnyi.com/en/news/explosions-reported-near-aircraft-plant-producing-kh-59-missiles-in-smolensk/"
+          ]
+        }
+      ],
+      "notes": "Located at Frunze St 74, Smolensk, SE of Smolensk North Airport. On EU, US, and Ukrainian sanctions lists.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Smolensk_Aviation_Plant",
+        "https://www.newsweek.com/russia-kh-59-missiles-factory-drone-attack-ukraine-1831219"
+      ]
+    },
+    {
+      "id": "tactical-missiles-corporation-korolyov",
+      "name": "Tactical Missiles Corporation HQ – Korolyov",
+      "name_local": "АО «Корпорация Тактическое Ракетное Вооружение» (КТРВ), Королёв",
+      "lat": 55.92,
+      "lon": 37.84,
+      "category": "missile",
+      "produces": "Kh-31, Kh-35, Kh-38, Kh-29 air-to-surface missiles; R-77/R-73 air-to-air missiles; corporate HQ with R&D integration",
+      "operator": "Tactical Missiles Corporation (KTRV, state-owned)",
+      "region": "Moscow Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Headquarters and key R&D/integration facility in Korolyov (formerly Kaliningrad). Coordinates approximate (city-level). Production 5x pre-war levels as of early 2024. Subsidiaries include MKB Raduga, Smolensk Aviation Plant, Vympel NPO.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Tactical_Missiles_Corporation",
+        "https://defencesecurityasia.com/en/russias-tactical-missile-corporation-display-various-precision-guided-munitions-during-army-2024/"
+      ]
+    },
+    {
+      "id": "votkinsk-machine-building-plant",
+      "name": "Votkinsk Machine-Building Plant",
+      "name_local": "Воткинский завод (ФКП «Воткинский завод»)",
+      "lat": 57.05,
+      "lon": 53.98,
+      "category": "missile",
+      "produces": "Iskander-M and Iskander-K ballistic/cruise missiles; Oreshnik IRBM; RS-24 Yars ICBM components",
+      "operator": "Moscow Institute of Thermal Technology (Rostec/MoD)",
+      "region": "Udmurt Republic",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2026-02-20",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Ukrainian FP-5 Flamingo cruise missiles struck the plant ~1,300 km from Ukraine's border; workshops No. 22 and 36 confirmed destroyed. Satellite imagery showed a 30x24 m breach in building No. 19. Local Udmurtia head confirmed damage and casualties.",
+          "source_urls": [
+            "https://militarnyi.com/en/news/damage-at-votkinsk-missile-facility-seen-in-satellite-images-after-flamingo-attack/",
+            "https://kyivindependent.com/drone-strikes-russian-ballistic-missile-factory-over-1-300-km-from-ukraines-border/",
+            "https://en.defence-ua.com/news/ukraines_fp_5_flamingo_missiles_strike_russian_plant_producing_iskander_and_oreshnik_ballistic_missiles-17578.html"
+          ]
+        }
+      ],
+      "notes": "Deepest-ever Ukrainian strike on a Russian production facility at time of attack. Plant also produces Kinzhal and Bulava components.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Votkinsk_Machine_Building_Plant",
+        "https://kyivindependent.com/investigation-russia-expands-strategic-plant-producing-icbms-with-chinas-help/"
+      ]
+    },
+    {
+      "id": "kamaz-naberezhnye-chelny",
+      "name": "KamAZ Truck Plant",
+      "name_local": "ПАО «КАМАЗ»",
+      "lat": 55.7254,
+      "lon": 52.4112,
+      "category": "other",
+      "produces": "Heavy military trucks and logistics vehicles for the Russian Army (Typhoon MRAP, standard tactical trucks)",
+      "operator": null,
+      "region": "Republic of Tatarstan",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Russia's largest heavy vehicle manufacturer; main supplier of trucks to the Russian military. Plant sprawls over 57 sq km. Coordinates approximate (city-level). 2024-04-28: fire reported near KamAZ; cause unconfirmed, KamAZ denied fire was on their premises.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Kamaz",
+        "https://www.globalsecurity.org/military/world/russia/kamaz.htm"
+      ]
+    },
+    {
+      "id": "admiralty-shipyards-st-petersburg",
+      "name": "Admiralty Shipyards",
+      "name_local": "АО «Адмиралтейские верфи»",
+      "lat": 59.9192,
+      "lon": 30.2728,
+      "category": "shipyard",
+      "produces": "Lada-class diesel-electric submarines; Kilo-class submarines; 70% of production volume is submarine construction",
+      "operator": "USC",
+      "region": "Saint Petersburg",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Delivered Yakutsk and Velikiye Luki (Lada-class) in 2025; two more Lada-class submarines laid down in 2026. No confirmed Ukrainian strikes as of June 2026; located deep inside Russia.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Admiralty_Shipyards",
+        "https://thedefensewatch.com/naval-maritime/russia-orders-two-more-lada-class-submarines-for-2026/"
+      ]
+    },
+    {
+      "id": "sevastopol-shipyard",
+      "name": "Sevastopol Shipyard (Sevmorzavod)",
+      "name_local": "АО «13 судоремонтный завод»",
+      "lat": 44.6125,
+      "lon": 33.5349,
+      "category": "shipyard",
+      "produces": "Repair and modernisation of Black Sea Fleet warships and submarines; limited new construction (tankers, barges)",
+      "operator": "USC (Zvezdochka subsidiary)",
+      "region": "Crimea (occupied)",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2023-09-13",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Ukraine struck the shipyard with 10 Storm Shadow cruise missiles and 3 unmanned surface vessels; landing ship Minsk and Kilo-class submarine Rostov-on-Don destroyed in dry dock, 24 personnel injured, large fire.",
+          "source_urls": [
+            "https://www.aljazeera.com/news/2023/9/13/fire-at-naval-shipyard-in-russia-annexed-crimea-after-ukraine-air-attack",
+            "https://www.voanews.com/a/russia-says-ukraine-missile-attack-hits-sevastopol-shipyard/7266138.html",
+            "https://www.kyivpost.com/post/21565"
+          ]
+        }
+      ],
+      "notes": "Main repair base for Russia's Black Sea Fleet; some facilities reported halted by 2025. Strike destroyed two warships considered irreplaceable in Russia's current shipbuilding capacity.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Sevastopol_Shipyard",
+        "https://united24media.com/latest-news/russian-naval-shipyards-in-sevastopol-face-collapse-amid-ukrainian-drone-attacks-7030"
+      ]
+    },
+    {
+      "id": "sevmash-severodvinsk",
+      "name": "Sevmash Shipyard",
+      "name_local": "АО «ПО «Севмаш»",
+      "lat": 64.5817,
+      "lon": 39.8307,
+      "category": "shipyard",
+      "produces": "Nuclear submarines (Borei-A SSBN, Yasen-M SSGN); Russia's only producer of nuclear-powered submarines",
+      "operator": "USC",
+      "region": "Arkhangelsk Oblast",
+      "status": "operational",
+      "strikes": [],
+      "notes": "Largest shipbuilding enterprise in Russia; sole nuclear submarine producer. Currently building 8-10 submarines simultaneously, including Khabarovsk (Poseidon carrier) launched November 2025. Located in Severodvinsk on White Sea, ~1,600 km from front lines.",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Sevmash",
+        "https://www.defensenews.com/industry/2024/03/28/sevmash-completes-upgrades-to-build-russias-next-gen-nuclear-subs/"
+      ]
+    },
+    {
+      "id": "zaliv-shipyard-kerch",
+      "name": "Zaliv Shipyard",
+      "name_local": "АО «Судостроительный завод «Залив»",
+      "lat": 45.2639,
+      "lon": 36.4124,
+      "category": "shipyard",
+      "produces": "Large amphibious assault ships (Project 23900 Ivan Rogov-class); vessel repair and construction",
+      "operator": null,
+      "region": "Crimea (occupied)",
+      "status": "operational",
+      "strikes": [
+        {
+          "occurred_on": "2023-11-04",
+          "weapon": "missile",
+          "severity": "moderate",
+          "summary": "Ukraine struck Zaliv shipyard complex in Kerch with French SCALP cruise missiles; Project 22800 corvette Askold undergoing final testing was significantly damaged in its upper section.",
+          "source_urls": [
+            "https://maritime-executive.com/article/ukraine-strikes-another-naval-shipyard-in-russian-occupied-crimea",
+            "https://www.kyivpost.com/post/23679",
+            "https://www.npr.org/2023/11/05/1210758039/a-ukrainian-missile-strike-on-a-shipyard-in-crimea-damages-a-russian-ship"
+          ]
+        }
+      ],
+      "notes": "Constructing Ivan Rogov-class $1.2B amphibious assault ship (commissioned target delayed to ~2028). Russia installed Soviet-era AK-630 AA gun and barge/net barriers to defend dry dock from Ukrainian USVs.",
+      "source_urls": [
+        "https://www.navalnews.com/naval-news/2026/03/russias-ivan-rogov-class-assault-vessel-nears-completion-in-crimea/",
+        "https://united24media.com/latest-news/moscow-builds-12b-warship-in-crimea-within-reach-of-ukrainian-strikes-17168",
+        "https://english.nv.ua/nation/russia-installs-soviet-era-anti-aircraft-gun-in-crimea-to-defend-zaliv-shipyard-from-drone-strikes-50506563.html"
+      ]
+    }
+  ]
+}

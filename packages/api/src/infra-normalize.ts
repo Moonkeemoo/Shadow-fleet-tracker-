@@ -59,27 +59,29 @@ const PRECISIONS = new Set(["exact", "approx", "port"]);
 const WEAPONS = new Set(["uav", "missile", "unknown"]);
 const SEVERITIES = new Set(["major", "moderate", "minor", "unknown"]);
 
-function toStr(v: unknown): string | null {
+// Shared scalar coercers — shared with military-normalize.ts so the
+// validation rules (esp. the date round-trip) live in exactly one place.
+export function toStr(v: unknown): string | null {
   if (v === null || v === undefined) return null;
   const s = String(v).trim();
   return s.length ? s : null;
 }
 
-function toNum(v: unknown): number | null {
+export function toNum(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
 /** Like toNum but rejects values outside [min, max] — used for lat/lon. */
-function toCoord(v: unknown, min: number, max: number): number | null {
+export function toCoord(v: unknown, min: number, max: number): number | null {
   const n = toNum(v);
   if (n === null) return null;
   return n >= min && n <= max ? n : null;
 }
 
 /** YYYY-MM-DD that survives a UTC round-trip (rejects e.g. 2023-13-45), else null. */
-function toIsoDate(v: unknown): string | null {
+export function toIsoDate(v: unknown): string | null {
   const s = toStr(v);
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
   const d = new Date(s + "T00:00:00Z");
@@ -87,7 +89,7 @@ function toIsoDate(v: unknown): string | null {
   return s;
 }
 
-function toUrls(v: unknown): string[] {
+export function toUrls(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
   return v.map(String).map((s) => s.trim()).filter((s) => /^https?:\/\//i.test(s));
 }
