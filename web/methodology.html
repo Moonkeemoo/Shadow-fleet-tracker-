@@ -373,6 +373,12 @@
             <td>Public articles, linked per record</td>
             <td>Manual, ongoing curation</td>
           </tr>
+          <tr>
+            <td><strong><a href="https://acleddata.com/" target="_blank">ACLED (Armed Conflict Location &amp; Event Data)</a></strong></td>
+            <td>Auto-detected candidate strike events on mapped facilities (spatial join &le;10&nbsp;km + keyword check; shown as &ldquo;auto &middot; unverified&rdquo; until curator confirmation).</td>
+            <td>Free registered access; attribution required; raw data not republished.</td>
+            <td>Weekly, <code>bun run load-acled-strikes</code></td>
+          </tr>
         </tbody>
       </table>
       <div class="callout info">
@@ -717,7 +723,7 @@
       <h3 class="title">Oil infrastructure &amp; tanker-attack layers</h3>
       <p>Two static reference layers add land-side context to the live vessel picture.</p>
       <ul>
-        <li><strong>Infra</strong> — Russian oil refineries, major depots/tank farms, marine export terminals and trunk pipelines (simplified routes). Compiled from Global Energy Monitor (CC BY 4.0), Wikipedia/Wikidata, CREA publications and OpenStreetMap. Every record carries its source links, visible in the object card. Facilities also carry a per-event strike history (Ukrainian drone/missile strikes, as publicly reported), shown in the object card.</li>
+        <li><strong>Infra</strong> — Russian oil refineries, major depots/tank farms, marine export terminals and trunk pipelines (simplified routes). Compiled from Global Energy Monitor (CC BY 4.0), Wikipedia/Wikidata, CREA publications and OpenStreetMap. Every record carries its source links, visible in the object card. Facilities also carry a per-event strike history (Ukrainian drone/missile strikes, as publicly reported), shown in the object card. New candidate strikes are pulled weekly from ACLED, matched to facilities by location, and remain flagged auto &middot; unverified until a curator confirms them.</li>
         <li><strong>Attacks</strong> — Russia-linked attacks on tankers 2022–2026: Ukrainian naval-drone and aerial-drone strikes, limpet-mine attacks, strikes hitting tankers inside Russian ports, and unexplained explosions on shadow-fleet vessels. Each incident requires ≥2 independent sources or one authoritative source (Reuters/AP/BBC/FT/official statements). Incidents with a known IMO link to the vessel detail panel.</li>
       </ul>
       <div class="callout warning">
@@ -776,6 +782,7 @@
           <tr><td>Oil infrastructure</td><td>Manual reload, quarterly (<code>bun run load-infra</code>).</td></tr>
           <tr><td>Tanker attacks</td><td>Manual reload, ongoing curation (<code>bun run load-attacks</code>).</td></tr>
           <tr><td>Facility strikes (infra-strikes)</td><td>Manual reload, ongoing curation (<code>bun run load-infra-strikes</code>).</td></tr>
+          <tr><td>Facility strikes — ACLED auto-feed</td><td>Weekly (<code>bun run load-acled-strikes</code>); curator confirms via <code>bun run verify-strike &lt;id&gt;</code>.</td></tr>
         </tbody>
       </table>
       <p>

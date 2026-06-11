@@ -1875,20 +1875,23 @@ async function handleInfraStrikes(req: Request): Promise<Response> {
   const infraId = url.searchParams.get("infra_id");
   const since = url.searchParams.get("since");
   const sinceValid = since && /^\d{4}-\d{2}-\d{2}$/.test(since) ? since : null;
+  const verifiedParam = url.searchParams.get("verified");
+  const vf = verifiedParam === "true" ? true : verifiedParam === "false" ? false : null;
 
   const rows = await sql`
-    SELECT id, infra_id, occurred_on, weapon, summary, source_urls
+    SELECT id, infra_id, occurred_on, weapon, summary, source_urls, origin, verified
     FROM infra_strikes
     WHERE TRUE
       ${infraId ? sql`AND infra_id = ${infraId}` : sql``}
       ${sinceValid ? sql`AND occurred_on >= ${sinceValid}` : sql``}
+      ${vf !== null ? sql`AND verified = ${vf}` : sql``}
     ORDER BY occurred_on DESC
     LIMIT 2000
   `;
 
   return maybeCsvOrJson(req, rows as unknown as Array<Record<string, unknown>>,
     `infra-strikes-${new Date().toISOString().slice(0, 10)}.csv`,
-    ["occurred_on", "infra_id", "weapon", "summary", "source_urls"]);
+    ["occurred_on", "infra_id", "weapon", "summary", "source_urls", "origin", "verified"]);
 }
 
 async function handleDigest(): Promise<Response> {
@@ -1962,7 +1965,7 @@ const server = Bun.serve({
       if (url.pathname === "/api/zones")             return await withCache(req, 600_000, () => handleZones());
       if (url.pathname === "/api/infra")             return await withCache(req, 600_000, () => handleInfra(req));
       if (url.pathname === "/api/attacks")           return await withCache(req, 300_000, () => handleAttacks(req));
-      if (url.pathname === "/api/infra-strikes")     return await withCache(req, 600_000, () => handleInfraStrikes(req));
+      if (url.pathname === "/api/infra-strikes")     return await withCache(req, 300_000, () => handleInfraStrikes(req));
       if (url.pathname === "/api/cases")             return await withCache(req, 300_000, () => handleCases(req));
       if (url.pathname === "/api/digest")            return await withCache(req, 60_000, () => handleDigest());
       if (url.pathname === "/api/timeline")          return await withCache(req, 30_000, () => handleTimeline(req));

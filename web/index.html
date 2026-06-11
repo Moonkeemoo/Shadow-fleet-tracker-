@@ -1237,11 +1237,11 @@
     function strikeChip(text, color) {
       return `<span style="display:inline-block;padding:1px 8px;background:${color}22;border:1px solid ${color};border-radius:10px;font-size:10px;color:${color};font-weight:600;">${escapeHtml(text)}</span>`;
     }
-    function attackEntry(n, dateStr, chipText, chipColor, summary, urls) {
+    function attackEntry(n, dateStr, chipText, chipColor, summary, urls, extraChipHtml) {
       return `<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg-2);border-radius:4px;border-left:2px solid var(--c-red);">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <span style="font-weight:700;font-size:12px;color:var(--text-0);">#${n} · ${dateStr}</span>
-          ${chipText ? strikeChip(chipText, chipColor) : ""}
+          <span style="display:flex;align-items:center;gap:4px;">${chipText ? strikeChip(chipText, chipColor) : ""}${extraChipHtml || ""}</span>
         </div>
         ${summary ? `<div style="font-size:11px;color:var(--text-1);line-height:1.45;margin-top:4px;">${escapeHtml(String(summary).slice(0, 300))}</div>` : ""}
         <div style="margin-top:4px;">${sourceLinks(urls)}</div>
@@ -1291,9 +1291,15 @@
 
       const strikes = strikesByInfra.get(o.id) || [];
       if (strikes.length > 0) {
+        const unverifiedCount = strikes.filter(s => s.verified === false).length;
+        const verifiedStrikeCount = strikes.length - unverifiedCount;
+        const strikeCountLabel = unverifiedCount > 0 ? `${verifiedStrikeCount} (+${unverifiedCount} auto)` : `${strikes.length}`;
         html += `<div class="section" style="background: linear-gradient(180deg, rgba(255,71,87,0.10), transparent); border-left: 3px solid var(--c-red);">
-          <h3>💥 Strike history · ${strikes.length}</h3>
-          ${strikes.map((s, i) => attackEntry(strikes.length - i, fmtDateUTC(s.occurred_on), WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls)).join("")}
+          <h3>💥 Strike history · ${strikeCountLabel}</h3>
+          ${strikes.map((s, i) => {
+            const autoChip = s.verified === false ? strikeChip("auto · unverified", "#ffa502") : "";
+            return attackEntry(strikes.length - i, fmtDateUTC(s.occurred_on), WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, autoChip);
+          }).join("")}
         </div>`;
       }
 
@@ -1363,11 +1369,13 @@
             line.addTo(infraLayer);
           } else if (o.lat != null && o.lon != null) {
             const strikes = strikesByInfra.get(o.id);
-            const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size, strikesByInfra.has(o.id)) });
-            marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${strikes ? ` · 💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : ""}`);
+            const verifiedCount = strikes ? strikes.filter(s => s.verified !== false).length : 0;
+            const struck = verifiedCount > 0;
+            const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size, struck) });
+            marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${verifiedCount > 0 ? ` · 💥 ${verifiedCount} strike${verifiedCount > 1 ? "s" : ""}` : ""}`);
             marker.on("click", () => openInfraPanel(o));
             marker.addTo(infraLayer);
-            infraMarkers.push({ marker, kind: o.kind, struck: strikesByInfra.has(o.id) });
+            infraMarkers.push({ marker, kind: o.kind, struck });
           }
         }
       } catch (err) { console.error("loadInfra failed", err); }

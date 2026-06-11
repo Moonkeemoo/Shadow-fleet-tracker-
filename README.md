@@ -301,7 +301,11 @@ These overwrite previous entries (ON CONFLICT UPDATE) so it's safe to run anytim
 bun run load-infra      # oil-infrastructure reference layer (data/oil-infra.json)
 bun run load-attacks    # tanker-attack incidents (data/tanker-attacks.json)
 bun run load-infra-strikes   # strike events on infra objects (data/infra-strikes.json)
+bun run load-acled-strikes   # weekly: ACLED candidate strikes (requires ACLED_EMAIL/ACLED_PASSWORD)
+bun run verify-strike <id>   # curator confirms a candidate (--reject <id> deletes it)
 ```
+
+ACLED candidates land flagged `auto · unverified` and stay that way in the UI until a curator confirms them with `verify-strike`.
 
 ---
 
@@ -372,6 +376,8 @@ bun run load-infra-strikes   # strike events on infra objects (data/infra-strike
 | `bun run load-infra` | (Re-)load oil-infrastructure reference layer (`data/oil-infra.json`) |
 | `bun run load-attacks` | (Re-)load tanker-attack incidents (`data/tanker-attacks.json`) |
 | `bun run load-infra-strikes` | (Re-)load strike events on infra objects (`data/infra-strikes.json`) |
+| `bun run load-acled-strikes` | Weekly auto-feed of candidate strikes from ACLED (inserted as `auto · unverified`) |
+| `bun run verify-strike <id>` / `bun run verify-strike --reject <id>` | Curator confirms (promotes to verified) or rejects (deletes) an ACLED candidate |
 | `bun run test` | Run unit tests — risk scoring + dataset normalization (Node) |
 | `bun run db:up` / `bun run db:down` | Postgres container lifecycle |
 | `bun run db:psql` | Open a `psql` shell into the DB |
@@ -391,6 +397,8 @@ bun run load-infra-strikes   # strike events on infra objects (data/infra-strike
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 | `AIS_BBOXES` | all shadow-fleet regions (4 boxes) | JSON array of `[[SW_lat, SW_lon], [NE_lat, NE_lon]]` boxes. Default covers every zone in `zones.ts` (~55 msg/sec). |
 | `PORT` | `3000` | API + UI server port |
+| `ACLED_EMAIL` | optional | ACLED account email — enables the ACLED auto-feed (`bun run load-acled-strikes`). Register free at https://acleddata.com |
+| `ACLED_PASSWORD` | optional | ACLED account password (pairs with `ACLED_EMAIL`). Without both, the loader logs `acled_not_configured` and exits cleanly. |
 
 The default tracks **all shadow-fleet operational regions** — every zone in
 `zones.ts` (NE Atlantic + North Sea + Baltic + Murmansk · Mediterranean + Black Sea ·
@@ -431,6 +439,7 @@ All free, license-compatible with non-commercial / journalistic use:
 | [Global Energy Monitor](https://globalenergymonitor.org/) — Global Oil Infrastructure Tracker | Refineries + pipeline routes/capacities for `data/oil-infra.json` | CC BY 4.0 |
 | Wikipedia / Wikidata · [OpenStreetMap](https://www.openstreetmap.org/) | Infra cross-checks, local names, route geometry | CC BY-SA / CC0 · ODbL |
 | Press reports (Reuters / AP / BBC / FT / Kyiv Independent / Naval News …) | Strike events (`data/infra-strikes.json`) + tanker attacks (`data/tanker-attacks.json`) — every record carries its own source URLs | Public articles, linked per record |
+| [ACLED](https://acleddata.com/) (Armed Conflict Location & Event Data) | Auto-detected candidate strikes on mapped facilities (`load-acled-strikes`), flagged `auto · unverified` until curator confirmation | Free registered access; attribution required; raw data not republished |
 
 Provenance & QA for the curated datasets (verification methodology, dropped records,
 known gaps): [`docs/superpowers/specs/2026-06-10-infra-attacks-data-report.md`](docs/superpowers/specs/2026-06-10-infra-attacks-data-report.md).
