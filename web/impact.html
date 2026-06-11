@@ -139,7 +139,7 @@
   <header>
     <div>
       <h1>💥 OilFront — strike-campaign impact</h1>
-      <div class="meta" id="generated-at">Refining-capacity exposure over time — real, source-cited strike records only.</div>
+      <div class="meta" id="generated-at">Campaign tempo, strike severity, and external offline estimates — source-cited.</div>
     </div>
     <div style="display: flex; gap: 18px; font-size: 13px;">
       <a href="/">← live map</a>
@@ -443,7 +443,10 @@
       }
       if (legend) legend.style.display = "flex";
 
-      const W = 1000, H = 260, padL = 40, padR = 12, padT = 14, padB = 26;
+      // Dual y-axis: kbd (left, blue) and % (right, orange) have very different
+      // ranges, so each series is scaled to its own axis — never to a shared one
+      // (that would crush the % points against the floor).
+      const W = 1000, H = 260, padL = 44, padR = 44, padT = 14, padB = 26;
       const plotW = W - padL - padR, plotH = H - padT - padB;
       const pts = rows.map(r => {
         const isPct = r.offline_pct != null && (r.metric === "pct" || r.offline_kbd == null);
@@ -458,30 +461,35 @@
 
       const tMin = Math.min(...pts.map(p => p.t)), tMax = Math.max(...pts.map(p => p.t));
       const tSpan = Math.max(1, tMax - tMin);
-      const vMax = Math.max(1, ...pts.map(p => p.val));
+      const kbdMax = Math.max(1, ...pts.filter(p => !p.isPct).map(p => p.val));
+      const pctMax = Math.max(1, ...pts.filter(p => p.isPct).map(p => p.val));
       const xOf = t => padL + ((t - tMin) / tSpan) * plotW;
-      const yOf = v => padT + plotH - (v / vMax) * plotH;
+      const yKbd = v => padT + plotH - (v / kbdMax) * plotH;
+      const yPct = v => padT + plotH - (v / pctMax) * plotH;
+      const yOf = p => p.isPct ? yPct(p.val) : yKbd(p.val);
       const parts = [];
 
       const ticks = 4;
       for (let i = 0; i <= ticks; i++) {
-        const val = Math.round((vMax / ticks) * i);
-        const y = padT + plotH - (val / vMax) * plotH;
+        const frac = i / ticks;
+        const y = padT + plotH - frac * plotH;
         parts.push(`<line class="grid-line" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" />`);
-        parts.push(`<text class="axis-label" x="${padL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end">${val}</text>`);
+        // left axis = kbd (blue), right axis = % (orange)
+        parts.push(`<text class="axis-label" x="${padL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end" style="fill:#4aa3ff">${Math.round(kbdMax * frac)}</text>`);
+        parts.push(`<text class="axis-label" x="${W - padR + 4}" y="${(y + 3).toFixed(1)}" text-anchor="start" style="fill:#ff8c42">${Math.round(pctMax * frac)}%</text>`);
       }
 
-      // connect points of the same metric chronologically
+      // connect points of the same metric chronologically (each on its own axis)
       ["kbd", "pct"].forEach(metric => {
         const mp = pts.filter(p => (metric === "pct") === p.isPct).sort((a, b) => a.t - b.t);
         if (mp.length > 1) {
-          const d = mp.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.t).toFixed(1)},${yOf(p.val).toFixed(1)}`).join(" ");
+          const d = mp.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.t).toFixed(1)},${yOf(p).toFixed(1)}`).join(" ");
           parts.push(`<path class="pt-line" d="${d}" />`);
         }
       });
 
       pts.sort((a, b) => a.t - b.t).forEach((p, i) => {
-        parts.push(`<circle class="pt ${p.isPct ? "pt-pct" : "pt-kbd"}" cx="${xOf(p.t).toFixed(1)}" cy="${yOf(p.val).toFixed(1)}" r="5" data-i="${i}" />`);
+        parts.push(`<circle class="pt ${p.isPct ? "pt-pct" : "pt-kbd"}" cx="${xOf(p.t).toFixed(1)}" cy="${yOf(p).toFixed(1)}" r="5" data-i="${i}" />`);
       });
 
       // year labels along x

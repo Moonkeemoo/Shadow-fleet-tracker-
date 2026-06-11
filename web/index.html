@@ -886,6 +886,11 @@
           <div class="label">Sanctioned visible</div>
           <div class="value accent" id="stat-matched">—</div>
         </div>
+        <div class="stat" id="impact-stat" style="cursor: pointer; border-left: 2px solid var(--accent); padding-left: 10px;" onclick="window.location='/impact.html'" title="Open the Impact page — strike-campaign toll over time">
+          <div class="label">Russian refining offline ↗</div>
+          <div class="value accent" id="stat-impact" style="font-size: 17px;">—</div>
+          <div class="label" id="impact-sub" style="font-size: 9px; opacity: 0.75;"></div>
+        </div>
         <div class="stat">
           <div class="label">STS events 24h</div>
           <div class="value" style="color: var(--warn); font-size: 13px;" id="stat-sts">—</div>
@@ -893,10 +898,6 @@
         <div class="stat">
           <div class="label">Last refresh</div>
           <div class="value" id="stat-refresh">—</div>
-        </div>
-        <div class="stat" style="cursor: pointer;" onclick="window.location='/impact.html'" title="Open the Impact page — strike-campaign toll over time">
-          <div class="label">Refining hit</div>
-          <div class="value" id="stat-impact">—</div>
         </div>
       </div>
     </div>
@@ -1191,17 +1192,33 @@
         const el = document.getElementById("stat-impact");
         if (!el) return;
         if (!d.available) { el.textContent = "—"; return; }
-        // Base = last 7 days ("what's happening now"); the 30/90-day breakdown lives in the tooltip.
-        el.textContent = `${d.struck_7d} hit · 7d`;
         const tile = el.closest(".stat") || el.parentElement;
-        if (tile) tile.title =
-          `Mapped oil facilities struck by Ukrainian strikes:\n` +
-          `• last 7 days: ${d.struck_7d} facilities (${d.strikes_7d} strikes)\n` +
-          `• last 30 days: ${d.struck_30d} facilities (${d.strikes_30d} strikes)\n` +
-          `• last 90 days: ${d.struck_90d} facilities (${d.strikes_90d} strikes)\n` +
-          `Refining capacity at facilities struck in 90d: ${d.capacity_struck_90d_mt_yr} of ${d.total_refining_capacity_mt_yr} Mt/yr mapped.\n` +
-          `Caveat: struck ≠ fully offline; capacities are nameplate, not live throughput.\n` +
-          `→ click to open the full Impact page.`;
+        const o = d.latest_outage;
+        if (o && (o.offline_pct != null || o.offline_kbd != null)) {
+          // Headline = the latest EXTERNAL cited estimate of refining offline.
+          const isPct = o.metric === "pct" || (o.offline_pct != null && o.offline_kbd == null);
+          const sub = document.getElementById("impact-sub");
+          el.textContent = isPct ? `≈${o.offline_pct}%` : `≈${Number(o.offline_kbd).toLocaleString()} kbd`;
+          if (sub) sub.textContent = `${o.source || "est."} · ${String(o.as_of).slice(0, 10)}`;
+          if (tile) tile.title =
+            `External estimate of Russian primary-refining capacity offline due to strikes:\n` +
+            `${isPct ? o.offline_pct + "% of capacity" : Number(o.offline_kbd).toLocaleString() + " kbd"} — ${o.source || "source"}, ${String(o.as_of).slice(0, 10)}.\n` +
+            (o.note ? o.note + "\n" : "") +
+            `This is a third-party published figure, not our own calculation.\n` +
+            `Our records: ${d.strikes_90d} strikes on ${d.struck_90d} facilities in the last 90 days.\n` +
+            `→ click for the full Impact page.`;
+        } else {
+          // No external estimate loaded — fall back to our strike tempo.
+          el.textContent = `${d.strikes_90d} strikes / 90d`;
+          const sub = document.getElementById("impact-sub");
+          if (sub) sub.textContent = `${d.struck_90d} facilities`;
+          if (tile) tile.title =
+            `Mapped oil facilities struck by Ukrainian strikes:\n` +
+            `• last 7 days: ${d.struck_7d} facilities (${d.strikes_7d} strikes)\n` +
+            `• last 30 days: ${d.struck_30d} facilities (${d.strikes_30d} strikes)\n` +
+            `• last 90 days: ${d.struck_90d} facilities (${d.strikes_90d} strikes)\n` +
+            `→ click for the full Impact page.`;
+        }
       } catch (err) { console.error("loadImpact failed", err); }
     }
     async function loadSts() {

@@ -1959,6 +1959,18 @@ async function handleStrikeImpact(): Promise<Response> {
   const r = rows[0] ?? {};
   const cap = Number(r.capacity_struck_90d_mt_yr ?? 0);
   const total = Number(r.total_refining_capacity_mt_yr ?? 0);
+  // Latest external (cited) estimate of refining capacity offline — the headline
+  // figure for the header tile. Graceful null when the table/data is absent.
+  let latestOutage: Record<string, unknown> | null = null;
+  if (recon.outage) {
+    try {
+      const o = await sql`
+        SELECT as_of, offline_kbd, offline_pct, metric, source, source_url, note
+        FROM refining_outage ORDER BY as_of DESC LIMIT 1
+      `;
+      latestOutage = o[0] ?? null;
+    } catch { latestOutage = null; }
+  }
   return jsonResponse({
     available: true,
     struck_7d: Number(r.struck_7d ?? 0),
@@ -1969,6 +1981,7 @@ async function handleStrikeImpact(): Promise<Response> {
     strikes_90d: Number(r.strikes_90d ?? 0),
     capacity_struck_90d_mt_yr: Math.round(cap * 10) / 10,
     total_refining_capacity_mt_yr: Math.round(total * 10) / 10,
+    latest_outage: latestOutage,
   });
 }
 
