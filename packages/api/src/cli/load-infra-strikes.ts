@@ -37,6 +37,9 @@ async function ensureTable(): Promise<void> {
   // db/migrate-add-strike-origin.sql).
   await sql!`ALTER TABLE infra_strikes ADD COLUMN IF NOT EXISTS origin TEXT NOT NULL DEFAULT 'curated'`;
   await sql!`ALTER TABLE infra_strikes ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT TRUE`;
+  // Per-strike severity (impact-methodology revamp, matches
+  // db/migrate-add-strike-origin.sql) — curated damage classification.
+  await sql!`ALTER TABLE infra_strikes ADD COLUMN IF NOT EXISTS severity TEXT`;
   await sql!`CREATE INDEX IF NOT EXISTS infra_strikes_infra_idx ON infra_strikes (infra_id)`;
   await sql!`CREATE INDEX IF NOT EXISTS infra_strikes_occurred_on_idx ON infra_strikes (occurred_on DESC)`;
 }
@@ -63,15 +66,15 @@ async function main(): Promise<void> {
     try {
       await sql`
         INSERT INTO infra_strikes (
-          id, infra_id, occurred_on, weapon, summary, source_urls, raw, origin, verified
+          id, infra_id, occurred_on, weapon, severity, summary, source_urls, raw, origin, verified
         ) VALUES (
-          ${r.id}, ${r.infra_id}, ${r.occurred_on}, ${r.weapon}, ${r.summary},
+          ${r.id}, ${r.infra_id}, ${r.occurred_on}, ${r.weapon}, ${r.severity}, ${r.summary},
           ${r.source_urls}::text[], ${sql.json(r.raw as Parameters<typeof sql.json>[0])},
           'curated', TRUE
         )
         ON CONFLICT (id) DO UPDATE SET
           infra_id = EXCLUDED.infra_id, occurred_on = EXCLUDED.occurred_on,
-          weapon = EXCLUDED.weapon, summary = EXCLUDED.summary,
+          weapon = EXCLUDED.weapon, severity = EXCLUDED.severity, summary = EXCLUDED.summary,
           source_urls = EXCLUDED.source_urls, raw = EXCLUDED.raw,
           origin = EXCLUDED.origin, verified = EXCLUDED.verified
       `;

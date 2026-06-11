@@ -11,3 +11,11 @@
 
 ALTER TABLE infra_strikes ADD COLUMN IF NOT EXISTS origin TEXT NOT NULL DEFAULT 'curated';     -- 'curated' | 'acled'
 ALTER TABLE infra_strikes ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT TRUE;     -- acled rows insert as FALSE
+
+-- Per-strike severity (impact-methodology revamp, spec 2026-06-11): a curated
+-- classification of reported damage from each strike's own sources, NOT a
+-- measured outage figure. 'major' = primary unit / CDU hit or large/extended
+-- outage; 'moderate' = process-unit damage / partial outage; 'minor' =
+-- tank/auxiliary/small fire; 'unknown' when the source doesn't say. The loader
+-- (load-infra-strikes.ts) also adds this column via ensureColumns.
+ALTER TABLE infra_strikes ADD COLUMN IF NOT EXISTS severity TEXT;                               -- 'major' | 'moderate' | 'minor' | 'unknown'

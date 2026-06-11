@@ -30,6 +30,9 @@ export interface StrikeRow {
   infra_id: string;
   occurred_on: string;
   weapon: "uav" | "missile" | "unknown";
+  // Curated classification of reported damage (impact-methodology revamp) — NOT
+  // a measured outage figure. Anything unrecognised (incl. absent) → "unknown".
+  severity: "major" | "moderate" | "minor" | "unknown";
   summary: string | null;
   source_urls: string[];
   raw: Record<string, unknown>;
@@ -54,6 +57,7 @@ const STATUSES = new Set(["operational", "damaged", "unknown"]);
 const ATTACK_TYPES = new Set(["usv_strike", "uav_strike", "limpet_mine", "port_strike", "explosion_unexplained"]);
 const PRECISIONS = new Set(["exact", "approx", "port"]);
 const WEAPONS = new Set(["uav", "missile", "unknown"]);
+const SEVERITIES = new Set(["major", "moderate", "minor", "unknown"]);
 
 function toStr(v: unknown): string | null {
   if (v === null || v === undefined) return null;
@@ -186,11 +190,15 @@ export function normalizeStrike(raw: Record<string, unknown>): StrikeRow | null 
   const weaponRaw = toStr(raw.weapon);
   const weapon = weaponRaw && WEAPONS.has(weaponRaw) ? weaponRaw : "unknown";
 
+  const severityRaw = toStr(raw.severity);
+  const severity = severityRaw && SEVERITIES.has(severityRaw) ? severityRaw : "unknown";
+
   return {
     id,
     infra_id,
     occurred_on,
     weapon: weapon as StrikeRow["weapon"],
+    severity: severity as StrikeRow["severity"],
     summary: toStr(raw.summary),
     source_urls,
     raw,

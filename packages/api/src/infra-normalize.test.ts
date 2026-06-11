@@ -177,3 +177,17 @@ test("strike with bad date is rejected, unknown weapon falls back", () => {
   assert.ok(s);
   assert.equal(s.weapon, "unknown");
 });
+
+test("strike severity: valid passes, bogus/absent → unknown", () => {
+  const valid = normalizeStrike({ ...STRIKE, severity: "major" });
+  assert.ok(valid);
+  assert.equal(valid.severity, "major");
+
+  const bogus = normalizeStrike({ ...STRIKE, severity: "catastrophic" });
+  assert.ok(bogus);
+  assert.equal(bogus.severity, "unknown");
+
+  const absent = normalizeStrike(STRIKE); // no severity field
+  assert.ok(absent);
+  assert.equal(absent.severity, "unknown");
+});
