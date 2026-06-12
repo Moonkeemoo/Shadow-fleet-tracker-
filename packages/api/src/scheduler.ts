@@ -63,14 +63,17 @@ let gdeltBusy = false;
 // Returns { exitCode, durationMs }. Never throws — errors are logged as warnings.
 // ---------------------------------------------------------------------------
 
-async function runLoader(name: FeedName): Promise<{ exitCode: number; durationMs: number }> {
+async function runLoader(
+  name: FeedName,
+  args: readonly string[] = [],
+): Promise<{ exitCode: number; durationMs: number }> {
   const script = SCRIPTS[name];
   const startMs = Date.now();
 
-  logger.info({ event: "feed_run_start", feed: name, script }, `starting ${name} loader`);
+  logger.info({ event: "feed_run_start", feed: name, script, args }, `starting ${name} loader`);
 
   try {
-    const child = Bun.spawn(["bun", "run", script], {
+    const child = Bun.spawn(["bun", "run", script, ...args], {
       stdout: "inherit",
       stderr: "inherit",
       env: process.env as Record<string, string>,
@@ -143,9 +146,16 @@ async function runGdelt(): Promise<void> {
   }
 }
 
+// Wide rescore window (days): the table is tiny (~275 rows), so re-scoring the
+// FULL table every cycle is cheap and idempotent. A narrow window would leave
+// older history unscored (NULL tier with verified=true → inconsistent if the
+// table is reset). 100000 days (~274 y) covers all rows. `bun run rescore`'s
+// OWN default stays 180 for ad-hoc manual use.
+const RESCORE_WINDOW_DAYS = "100000";
+
 async function runRescore(): Promise<void> {
   // Pure DB step — no GDELT API, no mutex. Safe to overlap any feed.
-  await runLoader("rescore");
+  await runLoader("rescore", [RESCORE_WINDOW_DAYS]);
 }
 
 // ---------------------------------------------------------------------------

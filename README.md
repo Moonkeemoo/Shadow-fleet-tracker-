@@ -292,7 +292,7 @@ that keeps those three feeds running on staggered independent intervals:
 | RSS + Google News (`load-rss-strikes`) | every **20 min** | Immediate first run; no credentials needed |
 | FIRMS-triggered (`load-firms-triggered`) | every **60 min** | First run 5 s after boot; requires `FIRMS_MAP_KEY` in `.env`; skipped (logged once) if the key is absent |
 | GDELT (`load-gdelt-strikes`) | every **3 h** | First run 3 min after boot; no credentials needed |
-| Rescore (`rescore`) | every **15 min** | First run 30 s after boot (after the immediate RSS feed populates); clusters + scores every strike into a confidence tier and maintains `verified` as a derived flag; pure DB step, no API, no mutex |
+| Rescore (`rescore`) | every **15 min** | First run 30 s after boot (after the immediate RSS feed populates); clusters + scores **every strike** (full-table window, `rescore 100000`) into a confidence tier and maintains `verified` as a derived flag; pure DB step, no API, no mutex |
 
 FIRMS-trigger and GDELT both call the GDELT API, so the scheduler prevents them from
 running simultaneously (mutex). RSS is independent and can overlap freely. Rescore

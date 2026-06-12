@@ -186,7 +186,10 @@ function utcDaysBetween(a: string, b: string): number {
 /**
  * Deterministic tier + numeric score from assembled evidence. PURE.
  * Priority (first matching rule wins):
- *   1. contradiction.found                                   → 'retracted'
+ *   1. contradiction.found && !trusted_manual               → 'retracted'
+ *      (a trusted human-verified row is NEVER auto-retracted by the coarse
+ *       Phase-1 keyword scan — a human already adjudicated it. The denial is
+ *       still surfaced via breakdown.contradiction_suppressed_by_trust.)
  *   2. trusted_manual
  *      OR (satellite.hit && reputable_count ≥ 2)
  *      OR (satellite.hit && attribution.official && reputable_count ≥ 1) → 'confirmed'
@@ -203,7 +206,7 @@ export function scoreStrike(ev: StrikeEvidence, asOfDate: string): Score {
   const age_days = utcDaysBetween(asOfDate, ev.occurred_on);
 
   let tier: Score["tier"];
-  if (ev.contradiction.found) {
+  if (ev.contradiction.found && !ev.trusted_manual) {
     tier = "retracted";
   } else if (
     ev.trusted_manual ||
@@ -236,6 +239,10 @@ export function scoreStrike(ev: StrikeEvidence, asOfDate: string): Score {
     age_days,
     contradiction: ev.contradiction.found,
     contradiction_kind: ev.contradiction.kind,
+    // A denial keyword fired, but this is a human-verified record, so the
+    // Phase-1 keyword scan did NOT retract it. Lets the "why this tier" UI
+    // honestly show "source noted a denial, but this record is human-verified".
+    contradiction_suppressed_by_trust: ev.contradiction.found && ev.trusted_manual,
     stale_threshold: STALE_DAYS,
   };
 

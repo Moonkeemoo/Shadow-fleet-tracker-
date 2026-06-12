@@ -169,18 +169,39 @@ function ev(over: Partial<StrikeEvidence> = {}): StrikeEvidence {
   };
 }
 
-test("retracted: contradiction overrides everything, even satellite + 3 reputable sources", () => {
+test("trusted_manual is immune to keyword contradiction → confirmed, suppression flagged", () => {
+  // A human already adjudicated this curated/manual row, so the coarse Phase-1
+  // denial keyword scan must NOT auto-retract it. The denial is still surfaced.
   const s = scoreStrike(
     ev({
       reputable_count: 3,
       satellite: { hit: true, last_date: "2026-06-11" },
       attribution: { official: true, who: "SBU" },
       trusted_manual: true,
+      origins: ["curated"],
+      contradiction: { found: true, kind: "intercepted" },
+    }),
+    AS_OF,
+  );
+  assert.equal(s.tier, "confirmed");
+  assert.equal(s.breakdown.contradiction_suppressed_by_trust, true);
+  assert.equal(s.breakdown.contradiction, true);
+});
+
+test("retracted: NON-trusted contradiction → retracted, even with satellite + 3 reputable", () => {
+  const s = scoreStrike(
+    ev({
+      reputable_count: 3,
+      satellite: { hit: true, last_date: "2026-06-11" },
+      attribution: { official: true, who: "SBU" },
+      trusted_manual: false,
+      origins: ["gdelt", "rss"],
       contradiction: { found: true, kind: "intercepted" },
     }),
     AS_OF,
   );
   assert.equal(s.tier, "retracted");
+  assert.equal(s.breakdown.contradiction_suppressed_by_trust, false);
 });
 
 test("confirmed path 1: trusted_manual (no other signals)", () => {
@@ -284,6 +305,7 @@ test("breakdown lists all signals + their values + stale_threshold", () => {
     age_days: 2,
     contradiction: false,
     contradiction_kind: null,
+    contradiction_suppressed_by_trust: false,
     stale_threshold: STALE_DAYS,
   });
 });
