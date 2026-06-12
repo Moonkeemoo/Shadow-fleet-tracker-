@@ -6,6 +6,9 @@
   <title>OilFront — live</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
   <style>
     :root {
@@ -199,6 +202,47 @@
     }
     #timeline .tl-legend .swatch {
       display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+    }
+    /* legend shape glyphs (neutral, shape carries type) */
+    #timeline .tl-legend .glyph { display: inline-flex; width: 16px; height: 16px; }
+    #timeline .tl-legend .glyph svg { width: 16px; height: 16px; }
+    /* legend status rings — small circle outlines in the 3 recency steps */
+    #timeline .tl-legend .ring {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      box-sizing: border-box; border: 2px solid #7d2a25;
+    }
+    #timeline .tl-legend .ring.r7 { border-color: #ff3b30; box-shadow: 0 0 4px rgba(255,59,48,0.8); }
+    #timeline .tl-legend .ring.r30 { border-color: #c0392b; }
+    #timeline .tl-legend .ring.r90 { border-color: #7d2a25; }
+    #timeline .tl-legend .ring-row { display: inline-flex; gap: 3px; align-items: center; }
+    #timeline .tl-legend .bubble {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%; font-size: 8px; font-weight: 700;
+      color: #cfd6e4; background: rgba(122,134,150,0.35); border: 1.5px solid #7a8696;
+    }
+    /* Burning marker — animated amber pulsing ring (on burningPane) */
+    @keyframes oilfront-burn-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255,149,0,0.85), 0 0 6px 2px rgba(255,149,0,0.7); }
+      70%  { box-shadow: 0 0 0 8px rgba(255,149,0,0), 0 0 8px 3px rgba(255,149,0,0.45); }
+      100% { box-shadow: 0 0 0 0 rgba(255,149,0,0), 0 0 6px 2px rgba(255,149,0,0.7); }
+    }
+    .marker-burning-ring {
+      position: absolute; border-radius: 50%; box-sizing: border-box;
+      border: 2px solid #ff9500; animation: oilfront-burn-pulse 1.5s ease-out infinite;
+      pointer-events: none;
+    }
+    /* Cluster bubbles — dark theme, colored by worst child status */
+    .oilfront-cluster {
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-weight: 700; color: #f2f5fb;
+      border: 2px solid; box-sizing: border-box;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7); cursor: pointer;
+    }
+    .oilfront-cluster.neutral { background: rgba(122,134,150,0.55); border-color: #9aa6b8; }
+    .oilfront-cluster.struck  { background: rgba(140,40,40,0.78); }
+    .oilfront-cluster.burning {
+      background: rgba(180,90,0,0.85); border-color: #ff9500;
+      animation: oilfront-burn-pulse 1.5s ease-out infinite;
     }
     #timeline-svg-wrap {
       flex: 1;
@@ -1038,17 +1082,22 @@
     <div class="tl-header">
       <div><strong id="tl-range-label">last 24h</strong> · <span id="tl-summary">—</span></div>
       <div class="tl-legend">
+        <!-- Vessels & sea incidents (colors unchanged — they encode risk/status, not type) -->
         <div class="li"><span class="swatch" style="background: #ffb84a;"></span> sanctioned visible</div>
         <div class="li"><span class="swatch" style="background: #ff4d6a;"></span> RU / UA subset</div>
         <div class="li"><span class="swatch" style="background: rgba(194,203,224,0.5); border: 1px dashed #c2cbe0;"></span> all tankers (trace)</div>
-        <div class="li"><span class="swatch" style="background: #b56cff;"></span> refinery</div>
-        <div class="li"><span class="swatch" style="background: #2bcbba;"></span> depot</div>
-        <div class="li"><span class="swatch" style="background: #54a0ff;"></span> terminal</div>
-        <div class="li"><span class="swatch" style="background: #06b6d4;"></span> petrochemical</div>
         <div class="li"><span class="swatch" style="background: #ff4757; border-radius: 0;"></span> tanker attack</div>
-        <div class="li"><span style="font-size:13px;">🎯</span> military site</div>
-        <div class="li"><span class="swatch" style="background: #ff2d2d;"></span> recent strike (brighter = fresher)</div>
-        <div class="li"><span style="font-size:13px;">🔥</span> burning now (strike + live heat)</div>
+        <!-- Facility TYPE now carried by SHAPE only (neutral slate fill) -->
+        <div class="li"><span class="glyph"><svg viewBox="0 0 12 14"><path d="M2 13 L2 6 L4 6 L4 9 L7 7 L7 9 L10 7 L10 13 Z" fill="#7a8696" stroke="#fff" stroke-width="0.5"/></svg></span> refinery</div>
+        <div class="li"><span class="glyph"><svg viewBox="0 0 12 14"><rect x="2.5" y="5" width="7" height="7" rx="1.2" fill="#7a8696" stroke="#fff" stroke-width="0.5"/><ellipse cx="6" cy="5" rx="3.5" ry="1.4" fill="#7a8696" stroke="#fff" stroke-width="0.5"/></svg></span> depot</div>
+        <div class="li"><span class="glyph"><svg viewBox="0 0 12 14"><path d="M6 1.5 L11 7 L6 12.5 L1 7 Z" fill="#7a8696" stroke="#fff" stroke-width="0.5"/></svg></span> terminal</div>
+        <div class="li"><span class="glyph"><svg viewBox="0 0 12 14"><path d="M6 1 L10 3.5 L10 8.5 L6 11 L2 8.5 L2 3.5 Z" fill="#7a8696" stroke="#fff" stroke-width="0.5"/></svg></span> petrochemical</div>
+        <div class="li"><span class="glyph"><svg viewBox="0 0 12 14"><path d="M6 1 L11 3.2 L11 7 C11 10.4 9 12.6 6 13.5 C3 12.6 1 10.4 1 7 L1 3.2 Z" fill="#7a8696" stroke="#fff" stroke-width="0.5"/></svg></span> military</div>
+        <!-- STATUS now carried by COLOR (the loud channel) -->
+        <div class="li"><span class="ring r90" style="border-color:#7a8696;box-shadow:none;"></span> no recorded strike</div>
+        <div class="li"><span class="ring-row"><span class="ring r7"></span><span class="ring r30"></span><span class="ring r90"></span></span> struck — brighter = fresher</div>
+        <div class="li"><span class="ring r7" style="border-color:#ff9500;box-shadow:0 0 5px #ff9500;"></span> 🔥 burning now</div>
+        <div class="li"><span class="bubble">▣</span> grouped (zoom in)</div>
         <div class="li"><span class="swatch" style="background: #ff6a00;"></span> thermal anomaly (incl. flaring)</div>
       </div>
     </div>
@@ -1085,11 +1134,49 @@
       maxZoom: 18,
     }).addTo(map);
 
+    // Dedicated top pane so "burning" markers are never buried under neighbors.
+    map.createPane("burningPane");
+    map.getPane("burningPane").style.zIndex = 650;
+
+    // Cluster icon factory shared by infra + military groups. Aggregates the WORST
+    // status among children: any burning → amber pulsing bubble; else any struck →
+    // red bubble at the freshest struck child's recency step; else → neutral slate.
+    function clusterIconFn(cluster) {
+      const children = cluster.getAllChildMarkers();
+      let anyBurning = false, anyStruck = false, minStruckAge = Infinity;
+      for (const m of children) {
+        const st = m.options && m.options.ofStatus;
+        if (!st) continue;
+        if (st.burning) anyBurning = true;
+        if (st.struck) {
+          anyStruck = true;
+          if (st.ageDays != null && st.ageDays < minStruckAge) minStruckAge = st.ageDays;
+        }
+      }
+      const count = cluster.getChildCount();
+      const size = count < 10 ? 30 : count < 50 ? 38 : count < 200 ? 46 : 54;
+      let cls = "neutral", borderColor = "";
+      if (anyBurning) {
+        cls = "burning";
+      } else if (anyStruck) {
+        cls = "struck";
+        borderColor = recencyStepColor(minStruckAge);
+      }
+      const style = `width:${size}px;height:${size}px;line-height:${size}px;font-size:${count < 100 ? 12 : 11}px;`
+        + (borderColor ? `border-color:${borderColor};` : "");
+      return L.divIcon({
+        html: `<div class="oilfront-cluster ${cls}" style="${style}">${count}</div>`,
+        className: "",
+        iconSize: [size, size],
+      });
+    }
+    const clusterOpts = { maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, iconCreateFunction: clusterIconFn };
+
     const zonesLayer = L.layerGroup().addTo(map);
-    const infraLayer = L.layerGroup().addTo(map);
+    const infraLayer = L.markerClusterGroup(clusterOpts).addTo(map);
     const attacksLayer = L.layerGroup().addTo(map);
     const firesLayer = L.layerGroup().addTo(map);
-    const militaryLayer = L.layerGroup().addTo(map);
+    const militaryLayer = L.markerClusterGroup(clusterOpts).addTo(map);
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
     const vesselsLayer = L.layerGroup().addTo(map);
@@ -1154,10 +1241,31 @@
       });
     }
     // -------- Infra & attack icons
+    // INFRA_COLORS / MIL_COLORS are NO LONGER used to color map markers (shape now
+    // carries type, status carries color). They survive only as a single accent on
+    // the detail panels' left border (openInfraPanel / openMilitaryPanel).
     const INFRA_COLORS = { refinery: "#b56cff", depot: "#2bcbba", terminal: "#54a0ff", petrochemical: "#06b6d4" };
+    // One muted slate for every not-struck glyph — recedes so STATUS reads loud.
+    const MARKER_NEUTRAL = "#7a8696";
+    // 3 discrete recency steps (no blended gradient) for the red STATUS RING.
+    function recencyStepColor(ageDays) {
+      if (ageDays != null && ageDays <= 7) return "#ff3b30";   // fresh — brightest
+      if (ageDays != null && ageDays <= 30) return "#c0392b";  // recent — mid
+      return "#7d2a25";                                        // older / unknown — dim
+    }
+    // Build the SVG fragments for a red status ring (when struck) enclosing the glyph.
+    // viewBox is 0..12 wide / 0..14 tall; ring is centred at (6,7) with r=6.6.
+    function statusRingSvg(badge) {
+      if (!badge) return "";
+      const color = recencyStepColor(badge.ageDays);
+      const glow = (badge.ageDays != null && badge.ageDays <= 7)
+        ? `<circle cx="6" cy="7" r="6.6" fill="none" stroke="${color}" stroke-width="2.6" opacity="0.35"/>` : "";
+      return glow + `<circle cx="6" cy="7" r="6.6" fill="none" stroke="${color}" stroke-width="1.4"/>`;
+    }
     function infraIconSize() { return map.getZoom() >= 5 ? 18 : 12; }
     function infraIcon(kind, size, badge, burning) {
-      const c = INFRA_COLORS[kind] || "#8a96aa";
+      const c = MARKER_NEUTRAL;
+      const op = badge ? 1 : 0.8; // not-struck glyphs recede at ~0.8 opacity
       let shape;
       if (kind === "refinery") {
         // factory: chimney + roofline
@@ -1172,18 +1280,16 @@
         // terminal: diamond
         shape = `<path d="M6 1.5 L11 7 L6 12.5 L1 7 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
       }
-      if (badge) {
-        if (badge.glow) shape += `<circle cx="10.5" cy="2.5" r="3.7" fill="none" stroke="${badge.color}" stroke-width="0.7" opacity="0.55"/>`;
-        shape += `<circle cx="10.5" cy="2.5" r="2.2" fill="${badge.color}" stroke="#fff" stroke-width="0.5"/>`;
-      }
-      // "Burning now" (strike + live satellite anomaly) → a 🔥 emoji overlay, clearer
-      // than a dot and visually distinct from the red strike-recency badge.
-      const fire = burning
-        ? `<span style="position:absolute;left:${-Math.round(size * 0.3)}px;top:${-Math.round(size * 0.55)}px;font-size:${Math.round(size * 0.85)}px;line-height:1;filter:drop-shadow(0 0 1px #000);">🔥</span>`
+      // Red STATUS RING encircles the whole glyph (3 discrete recency steps); none if not struck.
+      shape += statusRingSvg(badge);
+      // Burning = the single loudest treatment: an animated amber pulsing ring around
+      // the marker (rendered via CSS; the marker also rides the high burningPane).
+      const burnRing = burning
+        ? `<div class="marker-burning-ring" style="left:-3px;top:-3px;width:${size + 6}px;height:${size + 6}px;"></div>`
         : "";
       return L.divIcon({
         className: "infra-icon",
-        html: `<div style="position:relative;width:${size}px;height:${size}px;">${fire}<svg viewBox="0 0 12 14" width="${size}" height="${size}">${shape}</svg></div>`,
+        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
@@ -1204,18 +1310,19 @@
       explosives: "#ff7f50", armor: "#2ed573", aviation: "#3aa0ff",
       electronics: "#22d3ee", shipyard: "#7c8cf8", other: "#8a96aa",
     };
-    function militaryIcon(category, badge) {
-      const c = MIL_COLORS[category] || "#8a96aa";
-      const size = 14;
-      // shield
+    function militaryIcon(category, badge, burning) {
+      const c = MARKER_NEUTRAL;
+      const size = 16;
+      const op = badge ? 1 : 0.8; // not-struck glyphs recede
+      // shield (shape carries "military" type; color no longer encodes category)
       let shape = `<path d="M6 1 L11 3.2 L11 7 C11 10.4 9 12.6 6 13.5 C3 12.6 1 10.4 1 7 L1 3.2 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
-      if (badge) {
-        if (badge.glow) shape += `<circle cx="10.5" cy="2.5" r="3.7" fill="none" stroke="${badge.color}" stroke-width="0.7" opacity="0.55"/>`;
-        shape += `<circle cx="10.5" cy="2.5" r="2.2" fill="${badge.color}" stroke="#fff" stroke-width="0.5"/>`;
-      }
+      shape += statusRingSvg(badge);
+      const burnRing = burning
+        ? `<div class="marker-burning-ring" style="left:-3px;top:-3px;width:${size + 6}px;height:${size + 6}px;"></div>`
+        : "";
       return L.divIcon({
         className: "military-icon",
-        html: `<svg viewBox="0 0 12 14" width="${size}" height="${size}">${shape}</svg>`,
+        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
@@ -1803,7 +1910,8 @@
       </div>`;
       document.getElementById("p-body").innerHTML = html;
     }
-    let infraMarkers = []; // { marker, kind, id, badge, lastStrikeOn } — re-iconed on zoom threshold crossings
+    let infraMarkers = []; // { marker, kind, id, badge, lastStrikeOn } — rebuilt when FIRMS burning state changes
+    let infraObjects = [];  // raw infra point objects (kept so markers can be rebuilt after FIRMS loads)
     let strikesByInfra = new Map(); // infra_id -> [{occurred_on, weapon, summary, source_urls}], newest first
     async function loadInfraStrikes() {
       try {
@@ -1816,14 +1924,15 @@
         }
       } catch (err) { console.error("loadInfraStrikes failed", err); }
     }
+    const INFRA_ICON_SIZE = 16; // fixed — clustering now handles density (no zoom reskin)
     async function loadInfra() {
       try {
         const res = await fetch("/api/infra");
         const data = await res.json();
-        infraLayer.clearLayers();
-        infraMarkers = [];
         window.__infraById = {};
-        const size = infraIconSize();
+        infraObjects = [];
+        // Pipelines are static polylines (no clustering/status) — draw once here.
+        infraLayer.clearLayers();
         for (const o of (data.objects || [])) {
           window.__infraById[o.id] = o;
           if (o.kind === "pipeline" && o.geometry) {
@@ -1835,31 +1944,36 @@
             line.on("click", () => openInfraPanel(o));
             line.addTo(infraLayer);
           } else if (o.lat != null && o.lon != null) {
-            const strikes = strikesByInfra.get(o.id);
-            const badge = freshnessBadge(strikes);
-            const verifiedCount = strikes ? strikes.filter(s => s.verified !== false).length : 0;
-            const fa = fireFacilities[o.id];
-            const burning = !!(badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, badge.lastDate));
-            const marker = L.marker([o.lat, o.lon], { icon: infraIcon(o.kind, size, badge, burning) });
-            marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${verifiedCount > 0 ? ` · 💥 ${verifiedCount} strike${verifiedCount > 1 ? "s" : ""}` : ""}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}${burning ? " · 🔥 burning now" : ""}`);
-            marker.on("click", () => openInfraPanel(o));
-            marker.addTo(infraLayer);
-            infraMarkers.push({ marker, kind: o.kind, id: o.id, badge, lastStrikeOn: badge ? badge.lastDate : null });
+            infraObjects.push(o);
           }
         }
+        renderInfraMarkers();
       } catch (err) { console.error("loadInfra failed", err); }
     }
-    function reskinInfraMarkers() {
-      const size = infraIconSize();
-      for (const m of infraMarkers) {
-        const fa = fireFacilities[m.id];
-        const burning = !!(m.badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, m.lastStrikeOn));
-        m.marker.setIcon(infraIcon(m.kind, size, m.badge, burning));
+    // (Re)build the infra point markers. Called by loadInfra and again after loadFires
+    // so burning state (which depends on FIRMS) + cluster bubbles stay in sync.
+    function renderInfraMarkers() {
+      // Remove only the previously-built point markers (leave pipeline polylines intact).
+      for (const m of infraMarkers) infraLayer.removeLayer(m.marker);
+      infraMarkers = [];
+      const fresh = [];
+      for (const o of infraObjects) {
+        const strikes = strikesByInfra.get(o.id);
+        const badge = freshnessBadge(strikes);
+        const verifiedCount = strikes ? strikes.filter(s => s.verified !== false).length : 0;
+        const fa = fireFacilities[o.id];
+        const burning = !!(badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, badge.lastDate));
+        const opts = { icon: infraIcon(o.kind, INFRA_ICON_SIZE, badge, burning) };
+        if (burning) opts.pane = "burningPane"; // lift onto the top pane so it is never buried
+        const marker = L.marker([o.lat, o.lon], opts);
+        marker.options.ofStatus = { struck: !!badge, burning, ageDays: badge ? badge.ageDays : null };
+        marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${verifiedCount > 0 ? ` · 💥 ${verifiedCount} strike${verifiedCount > 1 ? "s" : ""}` : ""}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}${burning ? " · 🔥 burning now" : ""}`);
+        marker.on("click", () => openInfraPanel(o));
+        infraMarkers.push({ marker, kind: o.kind, id: o.id, badge, lastStrikeOn: badge ? badge.lastDate : null });
+        fresh.push(marker);
       }
+      if (fresh.length) infraLayer.addLayers(fresh); // bulk add for chunkedLoading
     }
-    map.on("zoomend", () => {
-      reskinInfraMarkers();
-    });
 
     function fmtDateUTC(d) {
       if (!d) return "—";
@@ -1895,7 +2009,10 @@
           const r = p.frp >= 20 ? 5 : 3;
           L.circleMarker([p.lat, p.lon], { radius: r, color: "#ff6a00", weight: 0, fillColor: "#ff6a00", fillOpacity: 0.5, interactive: false }).addTo(firesLayer);
         }
-        reskinInfraMarkers();  // refresh burning overlays now that FIRMS data has arrived
+        // FIRMS just updated fireFacilities → rebuild markers so burning state, the
+        // burning pane, and cluster status bubbles reflect live thermal anomalies.
+        if (infraObjects.length) renderInfraMarkers();
+        if (militaryObjects.length) renderMilitaryMarkers();
       } catch (err) { console.error("loadFires failed", err); }
     }
 
@@ -1910,26 +2027,45 @@
     }
 
     // -------- Military layer (Russian military-industrial sites — curated, static)
+    let militaryObjects = []; // raw military sites with coords (kept so markers can be rebuilt after FIRMS loads)
+    let militaryMarkers = []; // L.marker[] currently in militaryLayer
     async function loadMilitary() {
       try {
         const res = await fetch("/api/military");
         const data = await res.json();
         if (!data || !data.available) return; // military_sites table absent — skip, like other recon layers
-        militaryLayer.clearLayers();
         window.__militaryById = {};
+        militaryObjects = [];
         for (const s of (data.results || [])) {
           window.__militaryById[s.id] = s; // keep full object so the feed panel can reopen it
           if (s.lat == null || s.lon == null) continue;
-          const strikes = Array.isArray(s.strikes) ? s.strikes : [];
-          const badge = s.struck ? freshnessBadge(strikes) : null;
-          const marker = L.marker([s.lat, s.lon], { icon: militaryIcon(s.category, badge) });
-          // produces can run to ~230 chars; Leaflet tooltips don't wrap — keep it short, full text lives in the panel
-          const producesShort = s.produces ? String(s.produces).slice(0, 60) + (String(s.produces).length > 60 ? "…" : "") : "";
-          marker.bindTooltip(`${escapeHtml(s.name)}${producesShort ? ` · ${escapeHtml(producesShort)}` : ""} · ${strikes.length > 0 ? `💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : "not struck"}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}`);
-          marker.on("click", () => openMilitaryPanel(s));
-          marker.addTo(militaryLayer);
+          militaryObjects.push(s);
         }
+        renderMilitaryMarkers();
       } catch (err) { console.error("loadMilitary failed", err); }
+    }
+    // (Re)build the military markers. Re-run after loadFires so burning + clusters sync.
+    function renderMilitaryMarkers() {
+      militaryLayer.clearLayers();
+      militaryMarkers = [];
+      const fresh = [];
+      for (const s of militaryObjects) {
+        const strikes = Array.isArray(s.strikes) ? s.strikes : [];
+        const badge = s.struck ? freshnessBadge(strikes) : null;
+        const fa = fireFacilities[s.id];
+        const burning = !!(badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, badge.lastDate));
+        const opts = { icon: militaryIcon(s.category, badge, burning) };
+        if (burning) opts.pane = "burningPane";
+        const marker = L.marker([s.lat, s.lon], opts);
+        marker.options.ofStatus = { struck: !!badge, burning, ageDays: badge ? badge.ageDays : null };
+        // produces can run to ~230 chars; Leaflet tooltips don't wrap — keep it short, full text lives in the panel
+        const producesShort = s.produces ? String(s.produces).slice(0, 60) + (String(s.produces).length > 60 ? "…" : "") : "";
+        marker.bindTooltip(`${escapeHtml(s.name)}${producesShort ? ` · ${escapeHtml(producesShort)}` : ""} · ${strikes.length > 0 ? `💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : "not struck"}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}${burning ? " · 🔥 burning now" : ""}`);
+        marker.on("click", () => openMilitaryPanel(s));
+        militaryMarkers.push(marker);
+        fresh.push(marker);
+      }
+      if (fresh.length) militaryLayer.addLayers(fresh);
     }
 
     // -------- Live strike feed (left drawer)
