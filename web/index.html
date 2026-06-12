@@ -293,6 +293,8 @@
       margin-left: 4px;
     }
     #feed .feed-row .fr-src:hover { text-decoration: underline; }
+    #feed .feed-row .fr-why { margin-top: 4px; }
+    #feed .feed-row .fr-why .why-toggle:hover { color: var(--text-1); text-decoration: underline; }
 
     /* Side panel */
     #panel {
@@ -1417,14 +1419,98 @@
     function strikeChip(text, color) {
       return `<span style="display:inline-block;padding:1px 8px;background:${color}22;border:1px solid ${color};border-radius:10px;font-size:10px;color:${color};font-weight:600;">${escapeHtml(text)}</span>`;
     }
-    function attackEntry(n, dateStr, chipText, chipColor, summary, urls, extraChipHtml) {
+
+    // -------- Confidence tier UI (the payoff of the auto-verification engine)
+    // Each strike/feed event carries a computed confidence_tier + score_breakdown.
+    // We render an honest colored chip per tier and an expandable, plain-language
+    // "why this tier" built from the breakdown (no JSON dumps). null/unscored rows
+    // fall back to 'single' so older data never crashes the render.
+    const TIER_STYLE = {
+      confirmed: { label: "confirmed", color: "#2ed573", emoji: "✓" },
+      reported:  { label: "reported",  color: "#3aa0ff", emoji: "" },
+      single:    { label: "single source", color: "#ffa502", emoji: "" },
+      stale:     { label: "stale", color: "#8a96aa", emoji: "" },
+      retracted: { label: "retracted", color: "#ff4757", emoji: "" },
+    };
+    function tierStyle(tier) {
+      return TIER_STYLE[tier] || TIER_STYLE.single;
+    }
+    // The tier chip — reuses strikeChip styling; retracted gets a strike-through.
+    function tierChip(tier) {
+      const t = tierStyle(tier);
+      const label = (t.emoji ? t.emoji + " " : "") + t.label;
+      const struck = (tier === "retracted");
+      const c = t.color;
+      return `<span style="display:inline-block;padding:1px 8px;background:${c}22;border:1px solid ${c};border-radius:10px;font-size:10px;color:${c};font-weight:600;${struck ? "text-decoration:line-through;" : ""}">${escapeHtml(label)}</span>`;
+    }
+    // Plain-language reasons from score_breakdown. Returns an array of strings;
+    // only relevant lines are emitted (no false flags). Everything is escaped.
+    function whyThisTierLines(b) {
+      if (!b || typeof b !== "object") return ["no scoring details available"];
+      const lines = [];
+      const n = Number(b.reputable_count) || 0;
+      lines.push(`${n} independent source${n === 1 ? "" : "s"}`);
+      if (b.satellite) {
+        lines.push(`🛰 satellite heat confirmed${b.satellite_date ? ` (${escapeHtml(String(b.satellite_date))})` : ""}`);
+      } else {
+        lines.push("no satellite confirmation");
+      }
+      if (b.official_attribution) {
+        lines.push(`official attribution${b.who ? `: ${escapeHtml(String(b.who))}` : ""}`);
+      }
+      if (b.trusted_manual) lines.push("human-verified record");
+      if (b.contradiction) {
+        let c = "⚠ a source reported a denial/intercept";
+        if (b.contradiction_suppressed_by_trust) c += " (overridden — human-verified)";
+        lines.push(c);
+      }
+      if (b.age_days != null) {
+        lines.push(`age: ${Number(b.age_days)} day${Number(b.age_days) === 1 ? "" : "s"}${b.stale_threshold != null ? ` (stale after ${Number(b.stale_threshold)})` : ""}`);
+      }
+      return lines;
+    }
+    // Small linked outlet chips from evidence.sources (infra panel only — that
+    // endpoint carries full evidence). Shows the resolved domain as the link text.
+    function evidenceSourceChips(evidence) {
+      const srcs = (evidence && Array.isArray(evidence.sources)) ? evidence.sources : [];
+      if (!srcs.length) return "";
+      const chips = srcs.map(s => {
+        const dom = s && s.domain ? String(s.domain) : "source";
+        const href = s && s.url ? String(s.url) : null;
+        const inner = `<span style="display:inline-block;padding:1px 7px;background:var(--bg-3);border:1px solid var(--border);border-radius:9px;font-size:10px;color:var(--c-blue);">${escapeHtml(dom)}</span>`;
+        return href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" style="text-decoration:none;">${inner}</a>` : inner;
+      }).join(" ");
+      return `<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>`;
+    }
+    // The collapsible "ⓘ why" control. `idsuffix` keeps the toggle target unique;
+    // `extraHtml` (optional) is appended inside the panel (e.g. evidence chips).
+    let _whyCounter = 0;
+    function whyExpander(breakdown, extraHtml) {
+      const id = `why-${_whyCounter++}`;
+      const lines = whyThisTierLines(breakdown);
+      const body = lines.map(l =>
+        `<div style="font-size:10px;color:var(--text-1);line-height:1.5;">• ${l}</div>`
+      ).join("") + (extraHtml || "");
+      return `<span class="why-toggle" data-why-target="${id}" style="cursor:pointer;font-size:10px;color:var(--c-muted);user-select:none;">ⓘ why</span>` +
+        `<div id="${id}" class="why-body" style="display:none;margin-top:4px;padding:6px 8px;background:var(--bg-3);border-radius:4px;">${body}</div>`;
+    }
+    // One delegated click handler toggles any "ⓘ why" panel (feed + infra panel).
+    document.addEventListener("click", (ev) => {
+      const t = ev.target.closest(".why-toggle");
+      if (!t) return;
+      ev.stopPropagation(); // don't trigger the feed-row fly-to-map
+      const target = document.getElementById(t.dataset.whyTarget);
+      if (target) target.style.display = target.style.display === "none" ? "block" : "none";
+    });
+    function attackEntry(n, dateStr, chipText, chipColor, summary, urls, extraChipHtml, footerHtml) {
       return `<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg-2);border-radius:4px;border-left:2px solid var(--c-red);">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
           <span style="font-weight:700;font-size:12px;color:var(--text-0);">#${n} · ${dateStr}</span>
-          <span style="display:flex;align-items:center;gap:4px;">${chipText ? strikeChip(chipText, chipColor) : ""}${extraChipHtml || ""}</span>
+          <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">${chipText ? strikeChip(chipText, chipColor) : ""}${extraChipHtml || ""}</span>
         </div>
         ${summary ? `<div style="font-size:11px;color:var(--text-1);line-height:1.45;margin-top:4px;">${escapeHtml(String(summary).slice(0, 300))}</div>` : ""}
         <div style="margin-top:4px;">${sourceLinks(urls)}</div>
+        ${footerHtml ? `<div style="margin-top:6px;">${footerHtml}</div>` : ""}
       </div>`;
     }
     function fmtNum(n) {
@@ -1550,12 +1636,13 @@
         html += `<div class="section" style="background: linear-gradient(180deg, rgba(255,71,87,0.10), transparent); border-left: 3px solid var(--c-red);">
           <h3>💥 Strike history · ${strikeCountLabel}</h3>
           ${strikes.map((s, i) => {
-            const autoChip = s.verified === false ? strikeChip("auto · unverified", "#ffa502") : "";
+            const tChip = tierChip(s.confidence_tier);
             const fa = fireFacilities[o.id];
             const corroboratedChip = fa && datesWithinOneDay(fa.last_date, s.occurred_on) ? strikeChip("🛰 satellite-corroborated", "#3aa0ff") : "";
             const triggerChip = s.origin === "firms-trigger" ? strikeChip("🔥🛰 heat-triggered", "#ff8c00") : "";
             const sevChip = (s.severity && s.severity !== "unknown") ? strikeChip(s.severity, s.severity === "major" ? "#ff2d2d" : s.severity === "moderate" ? "#ffa502" : "#8a96aa") : "";
-            return attackEntry(strikes.length - i, `${fmtDateUTC(s.occurred_on)} · ${relativeAge(s.occurred_on)}`, WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, sevChip + corroboratedChip + triggerChip + autoChip);
+            const why = whyExpander(s.score_breakdown, evidenceSourceChips(s.evidence));
+            return attackEntry(strikes.length - i, `${fmtDateUTC(s.occurred_on)} · ${relativeAge(s.occurred_on)}`, WEAPON_LABELS[s.weapon] || null, s.weapon === "missile" ? "#ff4757" : "#ffa502", s.summary, s.source_urls, sevChip + corroboratedChip + triggerChip + tChip, why);
           }).join("")}
         </div>`;
       }
@@ -1862,25 +1949,28 @@
         const sevChip = (e.severity && e.severity !== "unknown")
           ? strikeChip(e.severity, e.severity === "major" ? "#ff2d2d" : e.severity === "moderate" ? "#ffa502" : "#8a96aa")
           : "";
-        const verChip = e.verified === false
-          ? strikeChip("auto · unverified", "#ffa502")
-          : strikeChip("✓ verified", "#3aa0ff");
+        const verChip = tierChip(e.confidence_tier);
+        const retracted = e.confidence_tier === "retracted";
         const fa = fireFacilities[e.facility_id];
         const fireFlag = fa && fa.active_now ? `<span title="thermal anomaly active near this facility">🔥</span>` : "";
         const firstSrc = Array.isArray(e.source_urls) && e.source_urls.length ? e.source_urls[0] : null;
         const srcLink = firstSrc
           ? `<a class="fr-src" href="${escapeHtml(firstSrc)}" target="_blank" rel="noopener" data-feed-src="1">↗ source</a>`
           : "";
-        return `<div class="feed-row" data-feed-idx="${i}">
+        const why = whyExpander(e.score_breakdown);
+        return `<div class="feed-row" data-feed-idx="${i}"${retracted ? ' style="opacity:0.55;"' : ""}>
           <div class="fr-top"><span>${escapeHtml(relativeAge(e.occurred_on))} · ${escapeHtml(fmtDateUTC(e.occurred_on))}</span><span>${fireFlag}</span></div>
           <div class="fr-name">${escapeHtml(e.facility_name || "Unknown facility")}</div>
           <div class="fr-chips">${kindChip}${weaponChip}${sevChip}${verChip}${srcLink}</div>
+          <div class="fr-why">${why}</div>
         </div>`;
       }).join("");
       list.querySelectorAll(".feed-row").forEach(row => {
         row.addEventListener("click", (ev) => {
           // Let the source link do its own thing (open in new tab) without flying.
           if (ev.target.closest("[data-feed-src]")) return;
+          // The "ⓘ why" toggle expands inline; don't fly to the map on it.
+          if (ev.target.closest(".why-toggle")) return;
           openFeedEvent(feedEvents[Number(row.dataset.feedIdx)]);
         });
       });
