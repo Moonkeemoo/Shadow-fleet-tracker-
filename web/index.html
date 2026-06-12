@@ -170,13 +170,13 @@
       margin-left: 6px;
     }
 
-    #map { position: absolute; top: 110px; left: 0; right: 0; bottom: 92px; }
+    #map { position: absolute; top: 110px; left: 0; right: 0; bottom: 116px; }
 
     /* Activity timeline strip */
     #timeline {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      height: 92px;
+      height: 116px;
       background: var(--bg-1);
       border-top: 1px solid var(--border);
       display: flex;
@@ -195,7 +195,7 @@
       margin-bottom: 4px;
     }
     #timeline .tl-header strong { color: var(--text-0); font-weight: 600; }
-    #timeline .tl-legend { display: flex; gap: 14px; }
+    #timeline .tl-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; }
     #timeline .tl-legend .li {
       display: inline-flex; align-items: center; gap: 5px;
       font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
@@ -231,6 +231,11 @@
       border: 2px solid #ff9500; animation: oilfront-burn-pulse 1.5s ease-out infinite;
       pointer-events: none;
     }
+    /* Red STATUS ring — a true CSS circle on the icon container (never clipped/stretched) */
+    .marker-status-ring {
+      position: absolute; border: 2px solid; border-radius: 50%;
+      box-sizing: border-box; pointer-events: none;
+    }
     /* Cluster bubbles — dark theme, colored by worst child status */
     .oilfront-cluster {
       display: flex; align-items: center; justify-content: center;
@@ -243,6 +248,12 @@
     .oilfront-cluster.burning {
       background: rgba(180,90,0,0.85); border-color: #ff9500;
       animation: oilfront-burn-pulse 1.5s ease-out infinite;
+    }
+    /* Vessel cluster bubble — coloured by worst child risk bucket (border+text+glow set
+       inline). Dark backing so the bucket-coloured number reads on the map. */
+    .oilfront-vessel-cluster {
+      background: rgba(11,16,32,0.85);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.85);
     }
     #timeline-svg-wrap {
       flex: 1;
@@ -274,7 +285,7 @@
       position: absolute;
       top: 110px;
       left: 0;
-      bottom: 92px;
+      bottom: 116px;
       width: 320px;
       background: var(--bg-1);
       border-right: 1px solid var(--border);
@@ -354,7 +365,7 @@
       position: absolute;
       top: 110px;
       right: 0;
-      bottom: 92px;
+      bottom: 116px;
       width: 460px;
       background: var(--bg-1);
       border-left: 1px solid var(--border);
@@ -815,11 +826,12 @@
     #entity-search-results .res .badge { background: var(--c-surface-3); }
 
     /* MAP / TIMELINE / PANEL geometry — fits 13" MBA */
-    #map { top: 96px !important; bottom: 64px !important; }
+    #map { top: 96px !important; bottom: 116px !important; }
     .leaflet-container { background: var(--c-bg) !important; }
+    #feed { bottom: 116px !important; }
 
     #timeline {
-      height: 64px !important;
+      height: 116px !important;
       padding: 4px 22px 6px !important;
       background: var(--c-surface-1) !important;
       border-top: 1px solid var(--c-border) !important;
@@ -831,14 +843,14 @@
       margin-bottom: 2px !important;
     }
     #timeline .tl-header strong { color: var(--c-text) !important; font-weight: 600 !important; }
-    #timeline .tl-legend { gap: 12px !important; }
+    #timeline .tl-legend { flex-wrap: wrap !important; gap: 8px 12px !important; }
     #timeline .tl-legend .li { font-size: 9px !important; letter-spacing: 0.4px !important; color: var(--c-subtle); }
 
     /* SIDE PANEL — 380px, compact sections, refined cards */
     #panel {
       width: 380px !important;
       top: 96px !important;
-      bottom: 64px !important;
+      bottom: 116px !important;
       background: var(--c-surface-1) !important;
       border-left: 1px solid var(--c-border) !important;
       box-shadow: var(--shadow-lg);
@@ -1097,7 +1109,7 @@
         <div class="li"><span class="ring r90" style="border-color:#7a8696;box-shadow:none;"></span> no recorded strike</div>
         <div class="li"><span class="ring-row"><span class="ring r7"></span><span class="ring r30"></span><span class="ring r90"></span></span> struck — brighter = fresher</div>
         <div class="li"><span class="ring r7" style="border-color:#ff9500;box-shadow:0 0 5px #ff9500;"></span> 🔥 burning now</div>
-        <div class="li"><span class="bubble">▣</span> grouped (zoom in)</div>
+        <div class="li"><span class="bubble">▣</span> grouped — facilities &amp; vessels (zoom in)</div>
         <div class="li"><span class="swatch" style="background: #ff6a00;"></span> thermal anomaly (incl. flaring)</div>
       </div>
     </div>
@@ -1172,6 +1184,31 @@
     }
     const clusterOpts = { maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, iconCreateFunction: clusterIconFn };
 
+    // Vessel cluster icon factory — bubble coloured by the WORST risk bucket among
+    // children (critical > high > elevated > low), reusing bucketColor(). Each vessel
+    // marker stashes its bucket in options.ofBucket (set where the marker is created).
+    const BUCKET_RANK = { critical: 3, high: 2, elevated: 1, low: 0 };
+    function vesselClusterIconFn(cluster) {
+      const children = cluster.getAllChildMarkers();
+      let worst = "low", worstRank = -1;
+      for (const m of children) {
+        const b = m.options && m.options.ofBucket;
+        const rank = BUCKET_RANK[b] != null ? BUCKET_RANK[b] : 0;
+        if (rank > worstRank) { worstRank = rank; worst = b || "low"; }
+      }
+      const color = bucketColor(worst);
+      const count = cluster.getChildCount();
+      const size = count < 10 ? 28 : count < 50 ? 34 : count < 200 ? 42 : 50;
+      const style = `width:${size}px;height:${size}px;line-height:${size}px;font-size:${count < 100 ? 12 : 11}px;`
+        + `border-color:${color};color:${color};box-shadow:0 0 7px ${color}66, 0 0 6px rgba(0,0,0,0.5);`;
+      return L.divIcon({
+        html: `<div class="oilfront-cluster oilfront-vessel-cluster" style="${style}">${count}</div>`,
+        className: "",
+        iconSize: [size, size],
+      });
+    }
+    const vesselClusterOpts = { maxClusterRadius: 45, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, disableClusteringAtZoom: 9, iconCreateFunction: vesselClusterIconFn };
+
     const zonesLayer = L.layerGroup().addTo(map);
     const infraLayer = L.markerClusterGroup(clusterOpts).addTo(map);
     const attacksLayer = L.layerGroup().addTo(map);
@@ -1179,7 +1216,7 @@
     const militaryLayer = L.markerClusterGroup(clusterOpts).addTo(map);
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
-    const vesselsLayer = L.layerGroup().addTo(map);
+    const vesselsLayer = L.markerClusterGroup(vesselClusterOpts).addTo(map);
     const trackLayer = L.layerGroup().addTo(map);
     const chainLayer = L.layerGroup().addTo(map);
     // Draw a highlighted poly-connection through chain nodes (terminal→pipeline-ish→refineries).
@@ -1253,14 +1290,15 @@
       if (ageDays != null && ageDays <= 30) return "#c0392b";  // recent — mid
       return "#7d2a25";                                        // older / unknown — dim
     }
-    // Build the SVG fragments for a red status ring (when struck) enclosing the glyph.
-    // viewBox is 0..12 wide / 0..14 tall; ring is centred at (6,7) with r=6.6.
-    function statusRingSvg(badge) {
+    // Build a red STATUS ring as a CSS DIV on the icon container — a true circle that
+    // is never clipped or stretched (the old in-SVG <circle> inside a 12×14 viewBox
+    // rendered as a clipped ellipse). Sized size+4 so it sits snug around the glyph;
+    // burning ring (size+6) nests just outside it. Colour = 3 discrete recency steps.
+    function statusRingDiv(badge, size) {
       if (!badge) return "";
       const color = recencyStepColor(badge.ageDays);
-      const glow = (badge.ageDays != null && badge.ageDays <= 7)
-        ? `<circle cx="6" cy="7" r="6.6" fill="none" stroke="${color}" stroke-width="2.6" opacity="0.35"/>` : "";
-      return glow + `<circle cx="6" cy="7" r="6.6" fill="none" stroke="${color}" stroke-width="1.4"/>`;
+      const glow = (badge.ageDays != null && badge.ageDays <= 7) ? `0 0 5px ${color}` : "none";
+      return `<div class="marker-status-ring" style="border-color:${color};box-shadow:${glow};left:-2px;top:-2px;width:${size + 4}px;height:${size + 4}px;"></div>`;
     }
     function infraIconSize() { return map.getZoom() >= 5 ? 18 : 12; }
     function infraIcon(kind, size, badge, burning) {
@@ -1280,16 +1318,18 @@
         // terminal: diamond
         shape = `<path d="M6 1.5 L11 7 L6 12.5 L1 7 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
       }
-      // Red STATUS RING encircles the whole glyph (3 discrete recency steps); none if not struck.
-      shape += statusRingSvg(badge);
+      // Red STATUS RING (CSS div on the container) encircles the whole glyph as a true
+      // circle (3 discrete recency steps); none if not struck. size+4, offset -2.
+      const statusRing = statusRingDiv(badge, size);
       // Burning = the single loudest treatment: an animated amber pulsing ring around
       // the marker (rendered via CSS; the marker also rides the high burningPane).
+      // size+8 / offset -4 so the amber nests just OUTSIDE the red status ring.
       const burnRing = burning
-        ? `<div class="marker-burning-ring" style="left:-3px;top:-3px;width:${size + 6}px;height:${size + 6}px;"></div>`
+        ? `<div class="marker-burning-ring" style="left:-4px;top:-4px;width:${size + 8}px;height:${size + 8}px;"></div>`
         : "";
       return L.divIcon({
         className: "infra-icon",
-        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
+        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}${statusRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
@@ -1316,13 +1356,13 @@
       const op = badge ? 1 : 0.8; // not-struck glyphs recede
       // shield (shape carries "military" type; color no longer encodes category)
       let shape = `<path d="M6 1 L11 3.2 L11 7 C11 10.4 9 12.6 6 13.5 C3 12.6 1 10.4 1 7 L1 3.2 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
-      shape += statusRingSvg(badge);
+      const statusRing = statusRingDiv(badge, size);
       const burnRing = burning
-        ? `<div class="marker-burning-ring" style="left:-3px;top:-3px;width:${size + 6}px;height:${size + 6}px;"></div>`
+        ? `<div class="marker-burning-ring" style="left:-4px;top:-4px;width:${size + 8}px;height:${size + 8}px;"></div>`
         : "";
       return L.divIcon({
         className: "military-icon",
-        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
+        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}${statusRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
@@ -1389,7 +1429,7 @@
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
           const heading = v.heading != null ? Number(v.heading) : (v.cog != null ? Number(v.cog) : 0);
           const isSelected = v.imo === selectedImo;
-          const m = L.marker([lat, lon], { icon: tankerIcon(heading, isSelected, v.risk_bucket), riseOnHover: true }).addTo(vesselsLayer);
+          const m = L.marker([lat, lon], { icon: tankerIcon(heading, isSelected, v.risk_bucket), riseOnHover: true, ofBucket: v.risk_bucket }).addTo(vesselsLayer);
           m.on("click", () => openVessel(v.imo));
           vesselMarkers.set(v.imo, m);
           shown++;
