@@ -207,6 +207,16 @@
       background: rgba(11,16,32,0.85);
       text-shadow: 0 1px 2px rgba(0,0,0,0.85);
     }
+    /* Lone-object DOT — a small numberless filled circle for a cluster of 1, so
+       singletons read like the cluster bubbles at low zoom. Thin border, solid fill,
+       no pulse (overrides .burning animation), subtle shadow for separation. */
+    .oilfront-dot {
+      border-width: 1.5px;
+      border-style: solid;
+      border-color: rgba(0,0,0,0.55);
+      box-shadow: 0 0 4px rgba(0,0,0,0.55);
+      animation: none !important;
+    }
     .leaflet-container { background: var(--bg-1) !important; }
 
     /* ============================================================
@@ -1149,6 +1159,13 @@
     map.createPane("burningPane");
     map.getPane("burningPane").style.zIndex = 650;
 
+    // Single shared zoom threshold for ALL cluster groups (infra/military/vessels):
+    // below it everything is round bubbles/dots; at/above it clustering disables and
+    // real shape icons appear. Used by disableClusteringAtZoom AND by the icon factories
+    // (singleMarkerMode otherwise permanently overrides a lone marker's real icon, so
+    // the factories must hand back the real icon themselves once zoomed in).
+    const DECLUSTER_ZOOM = 8;
+
     // Cluster icon factory shared by infra + military groups. Aggregates the WORST
     // status among children: any burning → amber pulsing bubble; else any struck →
     // red bubble at the freshest struck child's recency step; else → neutral slate.
@@ -1165,6 +1182,27 @@
         }
       }
       const count = cluster.getChildCount();
+      // Lone object (cluster of 1) → small numberless STATUS DOT, so singletons read
+      // as part of the same circle system at low zoom. singleMarkerMode routes lone
+      // markers here too (and would otherwise overwrite their icon permanently), so at
+      // z >= DECLUSTER_ZOOM we hand back the marker's REAL shape icon (stashed as
+      // ofRealIcon at creation) instead of a dot.
+      if (count === 1) {
+        const child = cluster.getAllChildMarkers()[0];
+        if (map.getZoom() >= DECLUSTER_ZOOM && child && child.options && child.options.ofRealIcon) {
+          return child.options.ofRealIcon;
+        }
+        const dotSize = 12;
+        let dotColor = "#7a8696"; // neutral slate
+        let dotCls = "neutral";
+        if (anyBurning) { dotColor = "#ff9500"; dotCls = "burning"; }
+        else if (anyStruck) { dotColor = recencyStepColor(minStruckAge); dotCls = "struck"; }
+        return L.divIcon({
+          html: `<div class="oilfront-cluster oilfront-dot ${dotCls}" style="width:${dotSize}px;height:${dotSize}px;background:${dotColor};"></div>`,
+          className: "",
+          iconSize: [dotSize, dotSize],
+        });
+      }
       const size = count < 10 ? 30 : count < 50 ? 38 : count < 200 ? 46 : 54;
       let cls = "neutral", borderColor = "";
       if (anyBurning) {
@@ -1181,7 +1219,7 @@
         iconSize: [size, size],
       });
     }
-    const clusterOpts = { maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, iconCreateFunction: clusterIconFn };
+    const clusterOpts = { maxClusterRadius: 50, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, singleMarkerMode: true, disableClusteringAtZoom: DECLUSTER_ZOOM, iconCreateFunction: clusterIconFn };
 
     // Vessel cluster icon factory — bubble coloured by the WORST risk bucket among
     // children (critical > high > elevated > low), reusing bucketColor(). Each vessel
@@ -1195,8 +1233,26 @@
         const rank = BUCKET_RANK[b] != null ? BUCKET_RANK[b] : 0;
         if (rank > worstRank) { worstRank = rank; worst = b || "low"; }
       }
-      const color = bucketColor(worst);
       const count = cluster.getChildCount();
+      // Lone vessel (cluster of 1) → small numberless DOT coloured by its risk bucket,
+      // so a single ship reads like the cluster bubbles at low zoom. At z >= DECLUSTER_ZOOM
+      // hand back the real tanker shape icon (stashed as ofRealIcon) — singleMarkerMode
+      // would otherwise permanently overwrite it. singleMarkerMode routes lone markers here.
+      if (count === 1) {
+        const child = cluster.getAllChildMarkers()[0];
+        if (map.getZoom() >= DECLUSTER_ZOOM && child && child.options && child.options.ofRealIcon) {
+          return child.options.ofRealIcon;
+        }
+        const bucket = child && child.options ? child.options.ofBucket : "low";
+        const c = bucketColor(bucket);
+        const dotSize = 11;
+        return L.divIcon({
+          html: `<div class="oilfront-cluster oilfront-vessel-cluster oilfront-dot" style="width:${dotSize}px;height:${dotSize}px;background:${c};box-shadow:0 0 6px ${c}66, 0 0 5px rgba(0,0,0,0.5);"></div>`,
+          className: "",
+          iconSize: [dotSize, dotSize],
+        });
+      }
+      const color = bucketColor(worst);
       const size = count < 10 ? 28 : count < 50 ? 34 : count < 200 ? 42 : 50;
       const style = `width:${size}px;height:${size}px;line-height:${size}px;font-size:${count < 100 ? 12 : 11}px;`
         + `border-color:${color};color:${color};box-shadow:0 0 7px ${color}66, 0 0 6px rgba(0,0,0,0.5);`;
@@ -1206,7 +1262,7 @@
         iconSize: [size, size],
       });
     }
-    const vesselClusterOpts = { maxClusterRadius: 45, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, disableClusteringAtZoom: 9, iconCreateFunction: vesselClusterIconFn };
+    const vesselClusterOpts = { maxClusterRadius: 45, showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true, singleMarkerMode: true, disableClusteringAtZoom: DECLUSTER_ZOOM, iconCreateFunction: vesselClusterIconFn };
 
     const zonesLayer = L.layerGroup().addTo(map);
     const infraLayer = L.markerClusterGroup(clusterOpts).addTo(map);
@@ -1216,6 +1272,20 @@
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
     const vesselsLayer = L.markerClusterGroup(vesselClusterOpts).addTo(map);
+    // singleMarkerMode sets a lone marker's icon ONCE (at add time) and never refreshes
+    // it on zoom — so a singleton stays a dot even after declustering. Re-run the icon
+    // factories for lone markers whenever the zoom CROSSES DECLUSTER_ZOOM, so they flip
+    // between low-zoom dot and the real shape icon (the factory's count===1 branch picks
+    // based on map.getZoom()). refreshClusters() in singleMarkerMode re-calls the factory.
+    let _prevDeclustered = map.getZoom() >= DECLUSTER_ZOOM;
+    map.on("zoomend", () => {
+      const nowDeclustered = map.getZoom() >= DECLUSTER_ZOOM;
+      if (nowDeclustered === _prevDeclustered) return; // only on threshold crossing
+      _prevDeclustered = nowDeclustered;
+      for (const grp of [infraLayer, militaryLayer, vesselsLayer]) {
+        try { grp.refreshClusters(); } catch (e) {}
+      }
+    });
     const trackLayer = L.layerGroup().addTo(map);
     const chainLayer = L.layerGroup().addTo(map);
     // Draw a highlighted poly-connection through chain nodes (terminal→pipeline-ish→refineries).
@@ -1431,7 +1501,12 @@
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
           const heading = v.heading != null ? Number(v.heading) : (v.cog != null ? Number(v.cog) : 0);
           const isSelected = v.imo === selectedImo;
-          const m = L.marker([lat, lon], { icon: tankerIcon(heading, isSelected, v.risk_bucket), riseOnHover: true, ofBucket: v.risk_bucket }).addTo(vesselsLayer);
+          const realIcon = tankerIcon(heading, isSelected, v.risk_bucket);
+          const m = L.marker([lat, lon], { icon: realIcon, riseOnHover: true, ofBucket: v.risk_bucket });
+          // Stash real tanker shape so the cluster factory restores it at z>=8
+          // (singleMarkerMode overwrites options.icon with the dot). Set BEFORE addTo.
+          m.options.ofRealIcon = realIcon;
+          m.addTo(vesselsLayer);
           m.on("click", () => openVessel(v.imo));
           vesselMarkers.set(v.imo, m);
           shown++;
@@ -2005,9 +2080,13 @@
         const verifiedCount = strikes ? strikes.filter(s => s.verified !== false).length : 0;
         const fa = fireFacilities[o.id];
         const burning = !!(badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, badge.lastDate));
-        const opts = { icon: infraIcon(o.kind, INFRA_ICON_SIZE, badge, burning) };
+        const realIcon = infraIcon(o.kind, INFRA_ICON_SIZE, badge, burning);
+        const opts = { icon: realIcon };
         if (burning) opts.pane = "burningPane"; // lift onto the top pane so it is never buried
         const marker = L.marker([o.lat, o.lon], opts);
+        // Stash the real shape icon: singleMarkerMode overwrites options.icon with the
+        // dot, so the cluster factory reads ofRealIcon to restore the shape at z>=8.
+        marker.options.ofRealIcon = realIcon;
         marker.options.ofStatus = { struck: !!badge, burning, ageDays: badge ? badge.ageDays : null };
         marker.bindTooltip(`${escapeHtml(o.name)}${o.capacity_mt_yr ? ` · ${fmtNum(o.capacity_mt_yr)} Mt/yr` : ""}${verifiedCount > 0 ? ` · 💥 ${verifiedCount} strike${verifiedCount > 1 ? "s" : ""}` : ""}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}${burning ? " · 🔥 burning now" : ""}`);
         marker.on("click", () => openInfraPanel(o));
@@ -2096,9 +2175,13 @@
         const badge = s.struck ? freshnessBadge(strikes) : null;
         const fa = fireFacilities[s.id];
         const burning = !!(badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, badge.lastDate));
-        const opts = { icon: militaryIcon(s.category, badge, burning) };
+        const realIcon = militaryIcon(s.category, badge, burning);
+        const opts = { icon: realIcon };
         if (burning) opts.pane = "burningPane";
         const marker = L.marker([s.lat, s.lon], opts);
+        // Stash the real shape icon so the cluster factory can restore it at z>=8
+        // (singleMarkerMode overwrites options.icon with the dot otherwise).
+        marker.options.ofRealIcon = realIcon;
         marker.options.ofStatus = { struck: !!badge, burning, ageDays: badge ? badge.ageDays : null };
         // produces can run to ~230 chars; Leaflet tooltips don't wrap — keep it short, full text lives in the panel
         const producesShort = s.produces ? String(s.produces).slice(0, 60) + (String(s.produces).length > 60 ? "…" : "") : "";
