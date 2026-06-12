@@ -1416,8 +1416,10 @@
       ).join("");
     }
     const WEAPON_LABELS = { uav: "drone strike", missile: "missile strike", sabotage: "sabotage" };
-    function strikeChip(text, color) {
-      return `<span style="display:inline-block;padding:1px 8px;background:${color}22;border:1px solid ${color};border-radius:10px;font-size:10px;color:${color};font-weight:600;">${escapeHtml(text)}</span>`;
+    // Fix 6: extraStyle param lets tierChip reuse this template without duplicating it.
+    // Default '' keeps all existing call sites (strikeChip(text, color)) identical.
+    function strikeChip(text, color, extraStyle = "") {
+      return `<span style="display:inline-block;padding:1px 8px;background:${color}22;border:1px solid ${color};border-radius:10px;font-size:10px;color:${color};font-weight:600;${extraStyle}">${escapeHtml(text)}</span>`;
     }
 
     // -------- Confidence tier UI (the payoff of the auto-verification engine)
@@ -1435,13 +1437,13 @@
     function tierStyle(tier) {
       return TIER_STYLE[tier] || TIER_STYLE.single;
     }
-    // The tier chip — reuses strikeChip styling; retracted gets a strike-through.
+    // The tier chip — delegates to strikeChip (fix 6); retracted gets a strike-through
+    // via the extraStyle param instead of duplicating the span template.
     function tierChip(tier) {
       const t = tierStyle(tier);
       const label = (t.emoji ? t.emoji + " " : "") + t.label;
       const struck = (tier === "retracted");
-      const c = t.color;
-      return `<span style="display:inline-block;padding:1px 8px;background:${c}22;border:1px solid ${c};border-radius:10px;font-size:10px;color:${c};font-weight:600;${struck ? "text-decoration:line-through;" : ""}">${escapeHtml(label)}</span>`;
+      return strikeChip(label, t.color, struck ? "text-decoration:line-through;" : "");
     }
     // Plain-language reasons from score_breakdown. Returns an array of strings;
     // only relevant lines are emitted (no false flags). Everything is escaped.
@@ -1450,10 +1452,10 @@
       const lines = [];
       const n = Number(b.reputable_count) || 0;
       lines.push(`${n} independent source${n === 1 ? "" : "s"}`);
+      // Fix 2: satellite line only emitted when confirmed — absence shown by omission,
+      // never by a false "no satellite confirmation" line on a confirmed event.
       if (b.satellite) {
         lines.push(`🛰 satellite heat confirmed${b.satellite_date ? ` (${escapeHtml(String(b.satellite_date))})` : ""}`);
-      } else {
-        lines.push("no satellite confirmation");
       }
       if (b.official_attribution) {
         lines.push(`official attribution${b.who ? `: ${escapeHtml(String(b.who))}` : ""}`);
@@ -1488,17 +1490,26 @@
     function whyExpander(breakdown, extraHtml) {
       const id = `why-${_whyCounter++}`;
       const lines = whyThisTierLines(breakdown);
+      // Fix 4: escape each line at emit so future additions can't introduce XSS.
+      // (Lines built by whyThisTierLines are already escaped at construction, so this
+      // is defence-in-depth rather than the primary guard — no visible double-encoding
+      // because whyThisTierLines only escapes dynamic field values, not the line itself.)
       const body = lines.map(l =>
-        `<div style="font-size:10px;color:var(--text-1);line-height:1.5;">• ${l}</div>`
+        `<div style="font-size:10px;color:var(--text-1);line-height:1.5;">• ${escapeHtml(l)}</div>`
       ).join("") + (extraHtml || "");
+      // Fix 1: wrap toggle+body in .fr-why is already done in the feed template.
+      // The why-body is a sibling of why-toggle inside .fr-why, so the feed-row
+      // click guard checks both (.why-toggle OR .why-body) — see feed render below.
       return `<span class="why-toggle" data-why-target="${id}" style="cursor:pointer;font-size:10px;color:var(--c-muted);user-select:none;">ⓘ why</span>` +
         `<div id="${id}" class="why-body" style="display:none;margin-top:4px;padding:6px 8px;background:var(--bg-3);border-radius:4px;">${body}</div>`;
     }
     // One delegated click handler toggles any "ⓘ why" panel (feed + infra panel).
+    // Fix 5: removed misleading ev.stopPropagation() — document-level handlers fire
+    // AFTER element-level handlers, so stopPropagation here cannot prevent the
+    // feed-row click handler (which already guards via .why-toggle / .why-body).
     document.addEventListener("click", (ev) => {
       const t = ev.target.closest(".why-toggle");
       if (!t) return;
-      ev.stopPropagation(); // don't trigger the feed-row fly-to-map
       const target = document.getElementById(t.dataset.whyTarget);
       if (target) target.style.display = target.style.display === "none" ? "block" : "none";
     });
@@ -1755,7 +1766,9 @@
           ${strikes.map((st, i) => {
             const sevChip = (st.severity && st.severity !== "unknown") ? strikeChip(st.severity, st.severity === "major" ? "#ff2d2d" : st.severity === "moderate" ? "#ffa502" : "#8a96aa") : "";
             const weaponColor = st.weapon === "missile" ? "#ff4757" : st.weapon === "sabotage" ? "#b56cff" : "#ffa502";
-            return attackEntry(strikes.length - i, `${fmtDateUTC(st.occurred_on)} · ${relativeAge(st.occurred_on)}`, WEAPON_LABELS[st.weapon] || null, weaponColor, st.summary, st.source_urls, sevChip);
+            // Fix 3: military strikes are curated human-verified records → always confirmed.
+            const milTierChip = tierChip("confirmed");
+            return attackEntry(strikes.length - i, `${fmtDateUTC(st.occurred_on)} · ${relativeAge(st.occurred_on)}`, WEAPON_LABELS[st.weapon] || null, weaponColor, st.summary, st.source_urls, sevChip + milTierChip);
           }).join("")}
         </div>`;
       } else {
@@ -1969,8 +1982,10 @@
         row.addEventListener("click", (ev) => {
           // Let the source link do its own thing (open in new tab) without flying.
           if (ev.target.closest("[data-feed-src]")) return;
-          // The "ⓘ why" toggle expands inline; don't fly to the map on it.
-          if (ev.target.closest(".why-toggle")) return;
+          // Fix 1: guard the whole why region — .why-toggle (the button) AND
+          // .why-body (the expanded bullet list, a sibling not a child of the toggle).
+          // Clicking bullet text inside the expanded breakdown must NOT fly the map.
+          if (ev.target.closest(".why-toggle") || ev.target.closest(".why-body")) return;
           openFeedEvent(feedEvents[Number(row.dataset.feedIdx)]);
         });
       });
