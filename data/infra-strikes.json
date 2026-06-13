@@ -3191,6 +3191,18 @@
       ]
     },
     {
+      "id": "2026-05-24-taman-oteko-terminal",
+      "infra_id": "taman-oteko-terminal",
+      "occurred_on": "2026-05-24",
+      "weapon": "uav",
+      "severity": "moderate",
+      "summary": "General Staff strike on the Volna oil-loading berth — a marine loading stender and pier infrastructure damaged — part of a wave that also hit Novorossiysk naval vessels.",
+      "source_urls": [
+        "https://ru.interfax.com.ua/news/general/1170495.html",
+        "https://euromaidanpress.com/2026/05/24/ukraine-targets-russian-fuel-flows-and-black-sea-naval-assets/"
+      ]
+    },
+    {
       "id": "2026-05-27-tuapse-oil-terminal",
       "infra_id": "tuapse-oil-terminal",
       "occurred_on": "2026-05-27",
@@ -3214,6 +3226,19 @@
       "source_urls": [
         "https://ru.themoscowtimes.com/2026/06/01/factbox-avarii-na-npz-i-drugikh-obektakh-tek-rf-v-2025-2026gg-a196816",
         "https://www.bloomberg.com/news/articles/2026-05-27/russian-black-sea-port-of-tuapse-tackles-fire-after-drone-strike"
+      ]
+    },
+    {
+      "id": "2026-05-29-temryuk-seaport",
+      "infra_id": "temryuk-seaport",
+      "occurred_on": "2026-05-29",
+      "weapon": "uav",
+      "severity": "moderate",
+      "summary": "SBU Alpha drones struck the Maktren-Nafta LPG terminal at Temryuk seaport overnight; a gas pipeline on the oil-loading pier and several terminal buildings caught fire (47 firefighters, extinguished by evening). Russian operational HQ confirmed fire from drone debris; SBU confirmed to Ukrinform.",
+      "source_urls": [
+        "https://www.ukrinform.net/amp/rubric-ato/4128648-ssu-strikes-russias-yaroslavl3-oil-pumping-station-temryuk-port-gas-terminal.html",
+        "https://crimea.ria.ru/20260529/morskoy-port-gorit-v-temryuke-posle-ataki-vsu-1156435380.html",
+        "https://ru.themoscowtimes.com/2026/05/29/pozhar-voznik-na-territorii-morskogo-porta-temryuk-v-rezultate-ataki-bpla-29-maya-opershtab-a196613"
       ]
     },
     {
@@ -3419,6 +3444,19 @@
       "source_urls": [
         "https://kyivindependent.com/russian-chemical-plant-reportedly-struck-by-ukrainian-drones/",
         "https://www.ukrinform.net/amp/rubric-ato/4109032-drone-attack-sparks-fires-at-chemical-plants-in-russias-tolyatti.html"
+      ]
+    },
+    {
+      "id": "2026-06-13-temryuk-seaport",
+      "infra_id": "temryuk-seaport",
+      "occurred_on": "2026-06-13",
+      "weapon": "uav",
+      "severity": "major",
+      "summary": "Overnight drone attack set the Temryuk seaport marine terminal ablaze; Krasnodar governor Kondratyev confirmed 1 killed and 3 injured, 96 firefighters deployed. Sixth strike on Temryuk-district maritime energy infrastructure in 2026; Russian authorities attributed it to drone debris, Ukrainian official claim pending at time of reporting.",
+      "source_urls": [
+        "https://59.ru/text/incidents/2026/06/13/76477275/",
+        "https://www.unian.net/war/drony-raznesli-morskoy-terminal-v-krasnodarskom-krae-vspyhnul-pozhar-13410822.html",
+        "https://ria.ru/20260613/bpla-2098715115.html"
       ]
     }
   ]

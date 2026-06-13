@@ -1453,6 +1453,29 @@
       ]
     },
     {
+      "id": "temryuk-seaport",
+      "kind": "terminal",
+      "name": "Temryuk Seaport (Maktren-Nafta terminal)",
+      "name_local": "Морской порт Темрюк",
+      "lat": 45.33,
+      "lon": 37.37,
+      "geometry": null,
+      "commodity": "LPG / oil products / grain / coal",
+      "capacity_mt_yr": null,
+      "capacity_bbl_d": null,
+      "storage_m3": null,
+      "throughput_mt_yr": null,
+      "owner": "Maktren-Nafta / Sea Trade Port Temryuk (MTPT)",
+      "operator": "Maktren-Nafta",
+      "region": "Krasnodar Krai",
+      "status": "damaged",
+      "notes": "Azov-coast universal transshipment complex (UN/LOCODE RUTMR): LPG/oil-products/grain/coal/metal; Maktren-Nafta LPG terminal; assessed as a fuel route for Russian logistics to occupied territories. Coords approximate (port entrance).",
+      "source_urls": [
+        "https://www.ukrinform.net/amp/rubric-ato/4128648-ssu-strikes-russias-yaroslavl3-oil-pumping-station-temryuk-port-gas-terminal.html",
+        "https://ru.themoscowtimes.com/2026/05/29/pozhar-voznik-na-territorii-morskogo-porta-temryuk-v-rezultate-ataki-bpla-29-maya-opershtab-a196613"
+      ]
+    },
+    {
       "id": "tuapse-oil-terminal",
       "locode": "RUTUA",
       "kind": "terminal",
