@@ -2165,6 +2165,29 @@
       ]
     },
     {
+      "id": "yefimovka-lpds",
+      "kind": "depot",
+      "name": "Yefimovka Oil Pumping Station (LPDS)",
+      "name_local": "ЛПДС «Ефимовка»",
+      "lat": 50.2635,
+      "lon": 44.7029,
+      "geometry": null,
+      "commodity": "crude oil (trunk pipeline pumping)",
+      "capacity_mt_yr": null,
+      "capacity_bbl_d": null,
+      "storage_m3": null,
+      "throughput_mt_yr": null,
+      "owner": "Transneft-Privolga",
+      "operator": "Transneft-Privolga",
+      "region": "Volgograd Oblast",
+      "status": "damaged",
+      "notes": "Central oil treatment & pumping station (Transneft-Privolga LPDS), Kotovsky district near Yefimovka village; node on the Kuibyshev–Tikhoretsk / Zhirnovsk–Volgograd / Saratov–Kuzmichi mains (~50 Mt/yr); feeds the Novorossiysk export corridor. Co-located ~8 km from the LUKOIL-Korobkovsky GPP. Coords approximate (village-level).",
+      "source_urls": [
+        "https://unn.ua/en/news/general-staff-confirms-damage-to-korobkovsky-gas-processing-plant-and-yefimovka-oil-pumping-station-in-russias-volgograd-region",
+        "https://armyinform.com.ua/en/2025/10/09/strike-on-lukoil-ukrainian-special-operations-forces-destroy-gas-processing-plant-and-dispatcher-station-deep-inside-russia/"
+      ]
+    },
+    {
       "id": "baku-novorossiysk-pipeline",
       "kind": "pipeline",
       "name": "Baku-Novorossiysk Pipeline (Northern Route)",

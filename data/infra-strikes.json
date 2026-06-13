@@ -1720,6 +1720,19 @@
       ]
     },
     {
+      "id": "2025-10-09-yefimovka-lpds",
+      "infra_id": "yefimovka-lpds",
+      "occurred_on": "2025-10-09",
+      "weapon": "uav",
+      "severity": "moderate",
+      "summary": "Ukrainian SOF deep-strike drones hit the Yefimovka LPDS overnight, co-struck with the LUKOIL-Korobkovsky GPP ~8 km away; fires confirmed by NASA FIRMS satellite. Ukrainian General Staff explicitly named the Yefimovka oil pumping station; Volgograd governor Bocharov acknowledged fires (attributed to drone debris).",
+      "source_urls": [
+        "https://unn.ua/en/news/general-staff-confirms-damage-to-korobkovsky-gas-processing-plant-and-yefimovka-oil-pumping-station-in-russias-volgograd-region",
+        "https://kyivindependent.com/fire-breaks-out-at-russian-gas-plant-after-reported-drone-strike/",
+        "https://armyinform.com.ua/en/2025/10/09/strike-on-lukoil-ukrainian-special-operations-forces-destroy-gas-processing-plant-and-dispatcher-station-deep-inside-russia/"
+      ]
+    },
+    {
       "id": "2025-10-11-ufa-refinery-unpz",
       "infra_id": "ufa-refinery-unpz",
       "occurred_on": "2025-10-11",
