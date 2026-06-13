@@ -1487,6 +1487,35 @@
       ]
     },
     {
+      "id": "striletska-bay-bsf-depot",
+      "name": "Black Sea Fleet Weapons Depot (Striletska Bay)",
+      "name_local": "Склад вооружения ЧФ (Стрелецкая бухта)",
+      "lat": 44.61,
+      "lon": 33.53,
+      "category": "other",
+      "produces": null,
+      "operator": "Russian Black Sea Fleet",
+      "region": "Sevastopol (occupied Crimea)",
+      "status": "damaged",
+      "strikes": [
+        {
+          "occurred_on": "2026-06-11",
+          "weapon": "missile",
+          "severity": "major",
+          "summary": "Ukrainian Navy struck the Black Sea Fleet weapons & equipment storage depot in Striletska Bay with a Neptune (R-360) coastal cruise missile; the Navy stated the facilities were completely destroyed.",
+          "source_urls": [
+            "https://en.defence-ua.com/news/ukraine_strikes_sevastopol_neptune_missile_hits_russian_weapons_depot_in_striletska_bay_video-18784.html",
+            "https://militarnyi.com/en/news/ukraine-destroyed-weapons-storage-neptune/"
+          ]
+        }
+      ],
+      "notes": "Black Sea Fleet weapons & military-equipment storage depot in Striletska Bay, Sevastopol — a naval logistics/storage target, not a production plant. Coords approximate.",
+      "source_urls": [
+        "https://en.defence-ua.com/news/ukraine_strikes_sevastopol_neptune_missile_hits_russian_weapons_depot_in_striletska_bay_video-18784.html",
+        "https://en.usm.media/the-navy-struck-a-russian-black-sea-fleet-facility-with-a-neptune-missile/"
+      ]
+    },
+    {
       "id": "admiralty-shipyards-st-petersburg",
       "name": "Admiralty Shipyards",
       "name_local": "АО «Адмиралтейские верфи»",
