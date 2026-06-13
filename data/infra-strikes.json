@@ -1695,6 +1695,19 @@
       ]
     },
     {
+      "id": "2025-10-09-korobkovsky-gpp-kotovo",
+      "infra_id": "korobkovsky-gpp-kotovo",
+      "occurred_on": "2025-10-09",
+      "weapon": "uav",
+      "severity": "major",
+      "summary": "Ukrainian SOF deep-strike drones hit the LUKOIL-Korobkovsky GPP overnight; two fires confirmed by NASA FIRMS satellite, struck alongside the Yefimovka oil pumping station. Ukrainian General Staff confirmed damage; Volgograd governor Bocharov acknowledged fires (attributed to drone debris).",
+      "source_urls": [
+        "https://ukranews.com/en/news/1110120-general-staff-confirms-damage-to-korobkovsky-gpp-in-volgograd-oblast-of-russia",
+        "https://kyivindependent.com/fire-breaks-out-at-russian-gas-plant-after-reported-drone-strike/",
+        "https://militarnyi.com/en/news/night-drone-attack-satellites-spot-fires-at-gas-plant-and-oil-pumping-station-in-russia-s-volgograd-region/"
+      ]
+    },
+    {
       "id": "2025-10-09-kuibyshev-tikhoretsk-pipeline",
       "infra_id": "kuibyshev-tikhoretsk-pipeline",
       "occurred_on": "2025-10-09",
@@ -3444,6 +3457,18 @@
       "source_urls": [
         "https://kyivindependent.com/russian-chemical-plant-reportedly-struck-by-ukrainian-drones/",
         "https://www.ukrinform.net/amp/rubric-ato/4109032-drone-attack-sparks-fires-at-chemical-plants-in-russias-tolyatti.html"
+      ]
+    },
+    {
+      "id": "2026-06-13-korobkovsky-gpp-kotovo",
+      "infra_id": "korobkovsky-gpp-kotovo",
+      "occurred_on": "2026-06-13",
+      "weapon": "uav",
+      "severity": "moderate",
+      "summary": "Overnight drone attack caused a fire at an industrial facility in Kotovsky district, Volgograd Oblast; Volgograd governor Bocharov and Russian media (Kommersant, Vzglyad) confirmed the fire, and NASA thermal signatures point to the LUKOIL-Korobkovsky GPP — the district's only major industrial plant. Specific-target identification probable; Ukrainian official attribution pending at time of recording.",
+      "source_urls": [
+        "https://www.kommersant.ru/doc/8737305",
+        "https://vz.ru/news/2026/6/13/1426940.html"
       ]
     },
     {

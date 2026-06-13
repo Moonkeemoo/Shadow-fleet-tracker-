@@ -261,6 +261,29 @@
       ]
     },
     {
+      "id": "korobkovsky-gpp-kotovo",
+      "kind": "refinery",
+      "name": "LUKOIL-Korobkovsky Gas Processing Plant",
+      "name_local": "ЛУКОЙЛ-Коробковский газоперерабатывающий завод",
+      "lat": 50.345,
+      "lon": 44.710,
+      "geometry": null,
+      "commodity": "associated petroleum gas → LPG / gas condensate",
+      "capacity_mt_yr": null,
+      "capacity_bbl_d": null,
+      "storage_m3": null,
+      "throughput_mt_yr": null,
+      "owner": "LUKOIL",
+      "operator": "LUKOIL-KGPZ",
+      "region": "Volgograd Oblast",
+      "status": "damaged",
+      "notes": "Gas processing plant (not a crude refinery) in Kotovo, Kotovsky district; largest associated-petroleum-gas processor in Russia's Southern Federal District (~450 Mm³/yr). Coords ~2.7 km NW of Kotovo town (satellite-derived).",
+      "source_urls": [
+        "https://euromaidanpress.com/2025/10/09/ukraine-hits-lukoil-gas-processing-plant-and-oil-facility-deep-inside-russia/",
+        "https://www.ukrinform.net/rubric-ato/4045470-ukraine-confirms-strike-on-major-gas-processing-plant-in-russias-volgograd-region.html"
+      ]
+    },
+    {
       "id": "krasnoarmeysk-lpds-saratov",
       "kind": "depot",
       "name": "Krasnoarmeysk Oil Pumping Station (LPDS)",
