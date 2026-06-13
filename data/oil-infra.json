@@ -431,6 +431,29 @@
       ]
     },
     {
+      "id": "matveyev-kurgan-depot",
+      "kind": "depot",
+      "name": "Agroprodukt Oil Depot (Matveyev Kurgan)",
+      "name_local": "Нефтебаза «Агропродукт» (Матвеев Курган)",
+      "lat": 47.56,
+      "lon": 38.86,
+      "geometry": null,
+      "commodity": "fuel storage/distribution",
+      "capacity_mt_yr": null,
+      "capacity_bbl_d": null,
+      "storage_m3": null,
+      "throughput_mt_yr": null,
+      "owner": "Agroprodukt",
+      "operator": null,
+      "region": "Rostov Oblast",
+      "status": "damaged",
+      "notes": "Storage+road/rail loading depot; coords approximate (town-level).",
+      "source_urls": [
+        "https://english.nv.ua/nation/drone-attack-on-matveyev-kurgan-fire-at-oil-depot-over-50-uavs-destroyed-50612298.html",
+        "https://www.themoscowtimes.com/2026/05/31/kyiv-says-struck-russian-pipeline-and-oil-depot-a92885"
+      ]
+    },
+    {
       "id": "moscow-refinery",
       "kind": "refinery",
       "name": "Moscow Refinery (Kapotnya)",
@@ -878,6 +901,29 @@
       ]
     },
     {
+      "id": "taganrog-seaport",
+      "kind": "terminal",
+      "name": "Taganrog Seaport (fuel infrastructure)",
+      "name_local": "Таганрогский морской порт (нефтебаза/ГСМ)",
+      "lat": 47.21,
+      "lon": 38.93,
+      "geometry": null,
+      "commodity": "port fuel storage / transshipment",
+      "capacity_mt_yr": null,
+      "capacity_bbl_d": null,
+      "storage_m3": null,
+      "throughput_mt_yr": null,
+      "owner": null,
+      "operator": null,
+      "region": "Rostov Oblast",
+      "status": "damaged",
+      "notes": "Azov-coast seaport fuel infrastructure (storage + oil depot); coords approximate (port). Same op set ablaze a Russian shadow-fleet tanker at berth.",
+      "source_urls": [
+        "https://www.pravda.com.ua/eng/news/2026/05/30/8037017/",
+        "https://united24media.com/war-in-ukraine/ukraine-hits-russias-shadow-fleet-tanker-and-oil-infrastructure-in-taganrog-and-crimea-19333"
+      ]
+    },
+    {
       "id": "taif-nk-refinery",
       "kind": "refinery",
       "name": "TAIF-NK Refinery (Nizhnekamsk)",
@@ -1240,6 +1286,29 @@
       "source_urls": [
         "https://www.gazprom-neft.com/company/major-projects/new-port/",
         "https://www.gazprom-neft.com/press-center/news/gazprom-neft-confirms-first-ever-maritime-shipments-of-yamal-oil-via-new-arctic-gates-sea-terminal/"
+      ]
+    },
+    {
+      "id": "armavir-oil-depot",
+      "kind": "depot",
+      "name": "Armavir Oil Depot (Southern Oil Company)",
+      "name_local": "Нефтебаза Армавир (Южная нефтяная компания)",
+      "lat": 44.99,
+      "lon": 41.13,
+      "geometry": null,
+      "commodity": "fuel storage / LPDS",
+      "capacity_mt_yr": null,
+      "capacity_bbl_d": null,
+      "storage_m3": null,
+      "throughput_mt_yr": null,
+      "owner": "Yuzhnaya Neftyanaya Kompaniya",
+      "operator": null,
+      "region": "Krasnodar Krai",
+      "status": "damaged",
+      "notes": "Oil depot/dispatch station in Armavir industrial zone; coords approximate (city-level).",
+      "source_urls": [
+        "https://www.pravda.com.ua/eng/news/2026/05/30/8037057/",
+        "https://militarnyi.com/en/news/drones-destroy-oil-depot-tank-in-armavir/"
       ]
     },
     {

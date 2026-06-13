@@ -3568,6 +3568,54 @@
         "https://kyivindependent.com/ukraine-confirms-destruction-of-fuel-tanks-near-mariupol-as-strikes-target-russian-military-sites-across-multiple-regions/",
         "https://united24media.com/war-in-ukraine/ukraine-strikes-russian-supply-port-in-occupied-mariupol-used-to-feed-southern-front-19570"
       ]
+    },
+    {
+      "id": "2026-05-31-matveyev-kurgan-depot",
+      "infra_id": "matveyev-kurgan-depot",
+      "occurred_on": "2026-05-31",
+      "weapon": "uav",
+      "severity": "major",
+      "summary": "Ukrainian SOF/USF long-range drones struck the Agroprodukt oil depot; fire spread ~3,600 m², residents evacuated, local state of emergency declared.",
+      "source_urls": [
+        "https://english.nv.ua/nation/drone-attack-on-matveyev-kurgan-fire-at-oil-depot-over-50-uavs-destroyed-50612298.html",
+        "https://www.pravda.com.ua/eng/news/2026/05/31/8037133/index.amp"
+      ]
+    },
+    {
+      "id": "2026-05-30-armavir-oil-depot",
+      "infra_id": "armavir-oil-depot",
+      "occurred_on": "2026-05-30",
+      "weapon": "uav",
+      "severity": "moderate",
+      "summary": "SBU drones struck the Armavir oil depot; at least one storage tank destroyed (a tank from a March strike still unrepaired); satellite-confirmed (Planet Labs/Schemes). Zelensky confirmed.",
+      "source_urls": [
+        "https://www.pravda.com.ua/eng/news/2026/05/30/8037057/",
+        "https://newsukraine.rbc.ua/news/satellite-images-reveal-damage-after-ukrainian-1780312032.html"
+      ]
+    },
+    {
+      "id": "2026-05-30-taganrog-seaport",
+      "infra_id": "taganrog-seaport",
+      "occurred_on": "2026-05-30",
+      "weapon": "uav",
+      "severity": "major",
+      "summary": "Ukrainian SBS long-range drones struck Taganrog seaport oil infrastructure — a fuel-storage tank, oil depot and administrative building — and set ablaze a Russian shadow-fleet tanker at berth; 2 injured.",
+      "source_urls": [
+        "https://www.pravda.com.ua/eng/news/2026/05/30/8037017/",
+        "https://united24media.com/war-in-ukraine/ukraine-hits-russias-shadow-fleet-tanker-and-oil-infrastructure-in-taganrog-and-crimea-19333"
+      ]
+    },
+    {
+      "id": "2026-05-24-vtorovo-lpds-kameshkovo",
+      "infra_id": "vtorovo-lpds-kameshkovo",
+      "occurred_on": "2026-05-24",
+      "weapon": "uav",
+      "severity": "moderate",
+      "summary": "SBU (Alpha) drones struck the Vtorovo pumping station; ~800 m² fire (an earlier strike than the 2026-06-10 hit).",
+      "source_urls": [
+        "https://www.pravda.com.ua/eng/news/2026/05/24/8036183/",
+        "https://euromaidanpress.com/2026/05/24/ukraine-strikes-vtorovo-fuel-pumping-station/"
+      ]
     }
   ]
 }
