@@ -2107,24 +2107,26 @@ async function handleInfraStrikes(req: Request): Promise<Response> {
 }
 
 // LIVE strike feed: a single chronological stream (newest-first) of the most
-// recent strike EVENTS across both strike layers — infra (oil_infra) and
-// military (military_sites). Powers the auto-refreshing feed panel in the UI;
-// each event carries enough geo/identity to fly the map and open the existing
-// detail panel. Surfaces curated+verified AND unverified auto-feed candidates
-// (verified flag is honest — unverified rows render as such).
+// recent strike EVENTS across the strike layers — infra (oil_infra), military
+// (military_sites) and logistics (logistics_sites). Powers the auto-refreshing
+// feed panel in the UI; each event carries enough geo/identity to fly the map
+// and open the existing detail panel. Surfaces curated+verified AND unverified
+// auto-feed candidates (verified flag is honest — unverified rows render as such).
 //
-// One UNION ALL over two sources, cast to matching column types:
-//   - infra:    infra_strikes ⋈ oil_infra (source_urls already text[])
-//   - military: military_sites, unnested via jsonb_array_elements(strikes);
-//               the element's source_urls jsonb array → text[] via a correlated
-//               jsonb_array_elements_text subquery so the JSON carries a clean
-//               array of strings (NOT a stringified blob).
+// One UNION ALL over three sources, cast to matching column types:
+//   - infra:     infra_strikes ⋈ oil_infra (source_urls already text[])
+//   - military:  military_sites, unnested via jsonb_array_elements(strikes);
+//                the element's source_urls jsonb array → text[] via a correlated
+//                jsonb_array_elements_text subquery so the JSON carries a clean
+//                array of strings (NOT a stringified blob).
+//   - logistics: logistics_sites, same embedded-strikes pattern as military.
 async function handleFeed(): Promise<Response> {
   if (!sql) return jsonResponse({ error: "no_db" }, { status: 500 });
   const recon = await reconTables();
   const hasInfra = recon.infra && recon.strikes;
   const hasMilitary = recon.military;
-  if (!hasInfra && !hasMilitary) {
+  const hasLogistics = recon.logistics;
+  if (!hasInfra && !hasMilitary && !hasLogistics) {
     return jsonResponse({ available: false, count: 0, events: [] });
   }
 
@@ -2202,11 +2204,50 @@ async function handleFeed(): Promise<Response> {
         WHERE FALSE
       `;
 
+  const logisticsBranch = hasLogistics
+    ? sql`
+        SELECT
+          (l.id || '-' || (e->>'occurred_on'))::text AS event_id,
+          'logistics'::text                          AS layer,
+          l.id::text                                 AS facility_id,
+          l.name::text                               AS facility_name,
+          l.category::text                           AS kind,
+          l.lat::double precision                    AS lat,
+          l.lon::double precision                    AS lon,
+          (e->>'occurred_on')::date                  AS occurred_on,
+          (e->>'weapon')::text                       AS weapon,
+          COALESCE(e->>'severity', 'unknown')::text  AS severity,
+          (e->>'summary')::text                      AS summary,
+          ARRAY(
+            SELECT jsonb_array_elements_text(COALESCE(e->'source_urls', '[]'::jsonb))
+          )::text[]                                  AS source_urls,
+          'curated'::text                            AS origin,
+          TRUE                                       AS verified,
+          'confirmed'::text                          AS confidence_tier,
+          jsonb_build_object('trusted_manual', true, 'note', 'curated logistics record') AS score_breakdown
+        FROM logistics_sites l
+        CROSS JOIN LATERAL jsonb_array_elements(COALESCE(l.strikes, '[]'::jsonb)) AS e
+        WHERE (e->>'occurred_on') IS NOT NULL
+      `
+    : sql`
+        SELECT
+          NULL::text AS event_id, 'logistics'::text AS layer, NULL::text AS facility_id,
+          NULL::text AS facility_name, NULL::text AS kind,
+          NULL::double precision AS lat, NULL::double precision AS lon,
+          NULL::date AS occurred_on, NULL::text AS weapon, NULL::text AS severity,
+          NULL::text AS summary, NULL::text[] AS source_urls,
+          NULL::text AS origin, NULL::boolean AS verified,
+          NULL::text AS confidence_tier, NULL::jsonb AS score_breakdown
+        WHERE FALSE
+      `;
+
   const events = await sql`
     SELECT * FROM (
       ${infraBranch}
       UNION ALL
       ${militaryBranch}
+      UNION ALL
+      ${logisticsBranch}
     ) feed
     ORDER BY occurred_on DESC, event_id DESC
     LIMIT 60

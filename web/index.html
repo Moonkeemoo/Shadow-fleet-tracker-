@@ -1079,6 +1079,7 @@
         <span class="chip layer-chip active" data-layer="attacks">Attacks</span>
         <span class="chip layer-chip active" data-layer="fires">🔥 Fires</span>
         <span class="chip layer-chip active" data-layer="military">🎯 Military</span>
+        <span class="chip layer-chip active" data-layer="logistics">🚆 Logistics</span>
         <span class="chip active" id="feed-toggle" title="Show / hide the live strike feed">📰 Feed</span>
         <span class="chip active" id="legend-toggle" title="Show / hide the map legend">🗺 Legend</span>
       </div>
@@ -1105,7 +1106,7 @@
   </div>
 
   <!-- Floating legend — bottom-right, collapsible. One unified system for LAND + SEA:
-       land glyphs reuse the exact infraIcon / militaryIcon SVG shapes (OIL_TINT / MIL_TINT);
+       land glyphs reuse the exact infraIcon / militaryIcon / logisticsIcon SVG shapes (OIL_TINT / MIL_TINT / LOGI_TINT);
        sea glyphs reuse the exact tankerIcon arrow + bucketColor risk fills, the cleanTankerDot
        trace, and the attackIcon star; thermal = the FIRMS #ff6a00 dot. Rings/pulse mirror the
        facility status channels, and the shared GROUPING section shows the cluster bubbles +
@@ -1122,6 +1123,13 @@
       <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><path d="M6 1.5 L11 7 L6 12.5 L1 7 Z" fill="#b9925b" stroke="#fff" stroke-width="0.5"/></svg></span> Terminal</div>
       <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><path d="M6 1 L10 3.5 L10 8.5 L6 11 L2 8.5 L2 3.5 Z" fill="#b9925b" stroke="#fff" stroke-width="0.5"/></svg></span> Petrochemical</div>
       <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><path d="M6 1 L11 3.2 L11 7 C11 10.4 9 12.6 6 13.5 C3 12.6 1 10.4 1 7 L1 3.2 Z" fill="#8295b5" stroke="#fff" stroke-width="0.5"/></svg></span> Military (all subtypes)</div>
+
+      <div class="lg-sec">🚆 Logistics — transport / storage (type)</div>
+      <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><rect x="1.5" y="4.5" width="9" height="5.5" rx="1" fill="#6f9e8a" stroke="#fff" stroke-width="0.5"/><circle cx="3.5" cy="11" r="1.1" fill="#fff"/><circle cx="8.5" cy="11" r="1.1" fill="#fff"/></svg></span> Rail depot</div>
+      <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><circle cx="6" cy="7" r="5.2" fill="#6f9e8a" stroke="#fff" stroke-width="0.5"/><path d="M2.6 3.6 L9.4 10.4 M9.4 3.6 L2.6 10.4" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg></span> Rail junction</div>
+      <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><path d="M1 11 L1 8 C1 4.5 3.4 2.5 6 2.5 C8.6 2.5 11 4.5 11 8 L11 11 L9 11 L9 8 C9 5.8 7.7 4.5 6 4.5 C4.3 4.5 3 5.8 3 8 L3 11 Z" fill="#6f9e8a" stroke="#fff" stroke-width="0.5"/></svg></span> Bridge</div>
+      <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><path d="M6 1 C6 1 8.5 3 8.5 6.5 L8.5 11 C8.5 12 7.6 12.7 6 12.7 C4.4 12.7 3.5 12 3.5 11 L3.5 6.5 C3.5 3 6 1 6 1 Z" fill="#6f9e8a" stroke="#fff" stroke-width="0.5"/></svg></span> Arsenal</div>
+      <div class="lg-row"><span class="lg-ic"><svg viewBox="0 0 12 14"><circle cx="6" cy="7" r="3.2" fill="#6f9e8a" stroke="#fff" stroke-width="0.5"/></svg></span> Other</div>
 
       <div class="lg-sec">Strike status (facility ring)</div>
       <div class="lg-row"><span class="lg-ic"><span class="lg-ring r7"></span></span> Struck ≤ 7 d (bright)</div>
@@ -1162,7 +1170,7 @@
     <div id="p-body"></div>
   </aside>
 
-  <!-- Live strike feed — left drawer, auto-refreshing chronological stream across both strike layers -->
+  <!-- Live strike feed — left drawer, auto-refreshing chronological stream across all strike layers -->
   <aside id="feed">
     <div class="feed-header">
       <span class="feed-title">📰 Recent strikes</span>
@@ -1294,6 +1302,7 @@
     const attacksLayer = L.layerGroup().addTo(map);
     const firesLayer = L.layerGroup().addTo(map);
     const militaryLayer = L.markerClusterGroup(clusterOpts).addTo(map);
+    const logisticsLayer = L.markerClusterGroup(clusterOpts).addTo(map);
     const cleanLayer = L.layerGroup().addTo(map);
     const stsLayer  = L.layerGroup().addTo(map);
     const vesselsLayer = L.markerClusterGroup(vesselClusterOpts).addTo(map);
@@ -1307,7 +1316,7 @@
       const nowDeclustered = map.getZoom() >= DECLUSTER_ZOOM;
       if (nowDeclustered === _prevDeclustered) return; // only on threshold crossing
       _prevDeclustered = nowDeclustered;
-      for (const grp of [infraLayer, militaryLayer, vesselsLayer]) {
+      for (const grp of [infraLayer, militaryLayer, logisticsLayer, vesselsLayer]) {
         try { grp.refreshClusters(); } catch (e) {}
       }
     });
@@ -1334,7 +1343,7 @@
     let activeRange = "24h";
     let minRisk = 0;                 // risk-score floor for the map (UX filter)
     let currentVessels = [];         // last sanctioned set (for vessel name/IMO search)
-    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true, fires: true, military: true };
+    const layerVisible = { zones: true, sts: true, clean: true, infra: true, attacks: true, fires: true, military: true, logistics: true };
     let fireFacilities = {};          // infra_id -> { count, max_frp, max_confidence, last_date, active }
 
     // -------- Helpers
@@ -1381,6 +1390,7 @@
     // legend's CORE glyphs use these SAME hex values so legend ≡ map.
     const OIL_TINT = "#b9925b"; // warm bronze/tan — refinery / depot / terminal / petrochemical
     const MIL_TINT = "#8295b5"; // muted steel-blue — military-industrial sites
+    const LOGI_TINT = "#6f9e8a"; // muted green/teal — logistics / transport sites (rail, bridges, arsenals)
     // 3 discrete recency steps (no blended gradient) for the red STATUS RING.
     function recencyStepColor(ageDays) {
       if (ageDays != null && ageDays <= 7) return "#ff3b30";   // fresh — brightest
@@ -1459,6 +1469,41 @@
         : "";
       return L.divIcon({
         className: "military-icon",
+        html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}${statusRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+    }
+    // -------- Logistics icons (transport/storage shapes; muted green/teal LOGI_TINT
+    // family — distinct from oil-bronze and military-steel. Shape carries the category;
+    // status ring + burning pulse reused exactly as infra/military.)
+    function logisticsIcon(category, badge, burning) {
+      const c = LOGI_TINT; // muted green/teal family
+      const size = 16;
+      const op = badge ? 1 : 0.8; // not-struck glyphs recede
+      let shape;
+      if (category === "rail-depot") {
+        // boxcar: rounded rect on two wheels
+        shape = `<rect x="1.5" y="4.5" width="9" height="5.5" rx="1" fill="${c}" stroke="#fff" stroke-width="0.5"/><circle cx="3.5" cy="11" r="1.1" fill="${c}" stroke="#fff" stroke-width="0.4"/><circle cx="8.5" cy="11" r="1.1" fill="${c}" stroke="#fff" stroke-width="0.4"/>`;
+      } else if (category === "rail-junction") {
+        // crossed rails: disc with an X
+        shape = `<circle cx="6" cy="7" r="5.2" fill="${c}" stroke="#fff" stroke-width="0.5"/><path d="M2.6 3.6 L9.4 10.4 M9.4 3.6 L2.6 10.4" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/>`;
+      } else if (category === "bridge") {
+        // arch span
+        shape = `<path d="M1 11 L1 8 C1 4.5 3.4 2.5 6 2.5 C8.6 2.5 11 4.5 11 8 L11 11 L9 11 L9 8 C9 5.8 7.7 4.5 6 4.5 C4.3 4.5 3 5.8 3 8 L3 11 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      } else if (category === "arsenal") {
+        // shell / bomb silhouette
+        shape = `<path d="M6 1 C6 1 8.5 3 8.5 6.5 L8.5 11 C8.5 12 7.6 12.7 6 12.7 C4.4 12.7 3.5 12 3.5 11 L3.5 6.5 C3.5 3 6 1 6 1 Z" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      } else {
+        // other: plain dot
+        shape = `<circle cx="6" cy="7" r="3.2" fill="${c}" stroke="#fff" stroke-width="0.5"/>`;
+      }
+      const statusRing = statusRingDiv(badge, size);
+      const burnRing = burning
+        ? `<div class="marker-burning-ring" style="left:-4px;top:-4px;width:${size + 8}px;height:${size + 8}px;"></div>`
+        : "";
+      return L.divIcon({
+        className: "logistics-icon",
         html: `<div style="position:relative;width:${size}px;height:${size}px;">${burnRing}${statusRing}<svg viewBox="0 0 12 14" width="${size}" height="${size}" style="opacity:${op};position:relative;">${shape}</svg></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
@@ -1667,6 +1712,10 @@
       drone: "Drone (UAV) production", missile: "Missile production", ammunition: "Ammunition plant",
       explosives: "Explosives / propellants", armor: "Armor / vehicle plant", aviation: "Aviation plant",
       electronics: "Electronics / optics", shipyard: "Shipyard", other: "Military-industrial site",
+    };
+    const LOGI_CATEGORY_LABELS = {
+      "rail-depot": "Rail depot", "rail-junction": "Rail junction", bridge: "Bridge",
+      arsenal: "Arsenal / ammo depot", other: "Other",
     };
     function sourceLinks(urls) {
       return (urls || []).map((u, i) =>
@@ -2052,6 +2101,65 @@
       </div>`;
       document.getElementById("p-body").innerHTML = html;
     }
+    // -------- Panel: logistics / transport site card (mirrors openMilitaryPanel)
+    function openLogisticsPanel(s) {
+      selectedImo = null;
+      const panel = document.getElementById("panel");
+      panel.classList.add("open");
+      document.getElementById("p-name").textContent = s.name;
+      document.getElementById("p-sub").textContent = `${LOGI_CATEGORY_LABELS[s.category] || s.category}${s.region ? " · " + s.region : ""}`;
+      const c = LOGI_TINT;
+      const strikes = (Array.isArray(s.strikes) ? s.strikes.slice() : []).sort((a, b) => (String(b.occurred_on) > String(a.occurred_on) ? 1 : String(b.occurred_on) < String(a.occurred_on) ? -1 : 0));
+      const struck = strikes.length > 0;
+
+      // Profile
+      let html = `<div class="section" style="border-left: 3px solid ${c};">
+        <h3>🚆 Profile</h3>
+        <div class="row"><span class="label">Category</span><span class="value">${escapeHtml(LOGI_CATEGORY_LABELS[s.category] || s.category)}</span></div>
+        ${s.name_local ? `<div class="row"><span class="label">Local name</span><span class="value">${escapeHtml(s.name_local)}</span></div>` : ""}
+        ${s.role ? `<div class="row"><span class="label">Role</span><span class="value">${escapeHtml(s.role)}</span></div>` : ""}
+        ${s.operator ? `<div class="row"><span class="label">Operator</span><span class="value">${escapeHtml(s.operator)}</span></div>` : ""}
+        ${s.region ? `<div class="row"><span class="label">Region</span><span class="value">${escapeHtml(s.region)}</span></div>` : ""}
+        <div class="row"><span class="label">Status</span><span class="value">${escapeHtml(s.status || "unknown")}</span></div>
+        ${s.lat != null && s.lon != null ? `<div class="row"><span class="label">Coordinates</span><span class="value">${Number(s.lat).toFixed(3)}, ${Number(s.lon).toFixed(3)}</span></div>` : ""}
+        <div class="row"><span class="label">Struck?</span><span class="value" style="color:${struck ? "var(--c-red)" : "var(--text-1)"};font-weight:${struck ? "700" : "400"};">${struck ? `yes · ${strikes.length} recorded strike${strikes.length > 1 ? "s" : ""} · last hit ${fmtDateUTC(strikes[0].occurred_on)} (${relativeAge(strikes[0].occurred_on)})` : "no"}</span></div>
+      </div>`;
+
+      // Strike history — newest first (data file order is not guaranteed)
+      if (struck) {
+        html += `<div class="section" style="background: linear-gradient(180deg, rgba(255,71,87,0.10), transparent); border-left: 3px solid var(--c-red);">
+          <h3>💥 Strike history · ${strikes.length}</h3>
+          ${strikes.map((st, i) => {
+            const sevChip = (st.severity && st.severity !== "unknown") ? strikeChip(st.severity, st.severity === "major" ? "#ff2d2d" : st.severity === "moderate" ? "#ffa502" : "#8a96aa") : "";
+            const weaponColor = st.weapon === "missile" ? "#ff4757" : st.weapon === "sabotage" ? "#b56cff" : "#ffa502";
+            // Logistics strikes are curated human-verified records → always confirmed.
+            const logiTierChip = tierChip("confirmed");
+            return attackEntry(strikes.length - i, `${fmtDateUTC(st.occurred_on)} · ${relativeAge(st.occurred_on)}`, WEAPON_LABELS[st.weapon] || null, weaponColor, st.summary, st.source_urls, sevChip + logiTierChip);
+          }).join("")}
+        </div>`;
+      } else {
+        html += `<div class="section">
+          <h3>💥 Strike history</h3>
+          <div class="empty-msg">no recorded strikes</div>
+        </div>`;
+      }
+
+      // Notes — only when present
+      if (s.notes) {
+        html += `<div class="section">
+          <h3>📝 Notes</h3>
+          <div style="font-size:11px;color:var(--text-1);line-height:1.45;">${escapeHtml(s.notes)}</div>
+        </div>`;
+      }
+
+      // Sources + provenance
+      html += `<div class="section">
+        <h3>🔗 Sources</h3>
+        <div>${sourceLinks(s.source_urls)}</div>
+        <div style="margin-top:8px;font-size:10px;color:var(--c-muted);">Curated layer — public sources (press, OSINT). Strike list covers documented hits only; absence of a record is not evidence of no strike.</div>
+      </div>`;
+      document.getElementById("p-body").innerHTML = html;
+    }
     let infraMarkers = []; // { marker, kind, id, badge, lastStrikeOn } — rebuilt when FIRMS burning state changes
     let infraObjects = [];  // raw infra point objects (kept so markers can be rebuilt after FIRMS loads)
     let strikesByInfra = new Map(); // infra_id -> [{occurred_on, weapon, summary, source_urls}], newest first
@@ -2159,6 +2267,7 @@
         // burning pane, and cluster status bubbles reflect live thermal anomalies.
         if (infraObjects.length) renderInfraMarkers();
         if (militaryObjects.length) renderMilitaryMarkers();
+        if (logisticsObjects.length) renderLogisticsMarkers();
       } catch (err) { console.error("loadFires failed", err); }
     }
 
@@ -2218,6 +2327,51 @@
       if (fresh.length) militaryLayer.addLayers(fresh);
     }
 
+    // -------- Logistics layer (Russian rail / bridges / arsenals — curated, static)
+    let logisticsObjects = []; // raw logistics sites with coords (kept so markers can be rebuilt after FIRMS loads)
+    let logisticsMarkers = []; // L.marker[] currently in logisticsLayer
+    async function loadLogistics() {
+      try {
+        const res = await fetch("/api/logistics");
+        const data = await res.json();
+        if (!data || !data.available) return; // logistics_sites table absent — skip, like other recon layers
+        window.__logisticsById = {};
+        logisticsObjects = [];
+        for (const s of (data.results || [])) {
+          window.__logisticsById[s.id] = s; // keep full object so the feed panel can reopen it
+          if (s.lat == null || s.lon == null) continue;
+          logisticsObjects.push(s);
+        }
+        renderLogisticsMarkers();
+      } catch (err) { console.error("loadLogistics failed", err); }
+    }
+    // (Re)build the logistics markers. Re-run after loadFires so burning + clusters sync.
+    function renderLogisticsMarkers() {
+      logisticsLayer.clearLayers();
+      logisticsMarkers = [];
+      const fresh = [];
+      for (const s of logisticsObjects) {
+        const strikes = Array.isArray(s.strikes) ? s.strikes : [];
+        const badge = s.struck ? freshnessBadge(strikes) : null;
+        const fa = fireFacilities[s.id];
+        const burning = !!(badge && fa && fa.active_now && datesWithinOneDay(fa.last_date, badge.lastDate));
+        const realIcon = logisticsIcon(s.category, badge, burning);
+        const opts = { icon: realIcon };
+        if (burning) opts.pane = "burningPane";
+        const marker = L.marker([s.lat, s.lon], opts);
+        // Stash the real shape icon so the cluster factory can restore it at z>=8
+        // (singleMarkerMode overwrites options.icon with the dot otherwise).
+        marker.options.ofRealIcon = realIcon;
+        marker.options.ofStatus = { struck: !!badge, burning, ageDays: badge ? badge.ageDays : null };
+        const roleShort = s.role ? String(s.role).slice(0, 60) + (String(s.role).length > 60 ? "…" : "") : "";
+        marker.bindTooltip(`${escapeHtml(s.name)}${roleShort ? ` · ${escapeHtml(roleShort)}` : ""} · ${strikes.length > 0 ? `💥 ${strikes.length} strike${strikes.length > 1 ? "s" : ""}` : "not struck"}${badge ? ` · last hit ${relativeAge(badge.lastDate)}` : ""}${burning ? " · 🔥 burning now" : ""}`);
+        marker.on("click", () => openLogisticsPanel(s));
+        logisticsMarkers.push(marker);
+        fresh.push(marker);
+      }
+      if (fresh.length) logisticsLayer.addLayers(fresh);
+    }
+
     // -------- Live strike feed (left drawer)
     // Chronological stream (newest-first) across BOTH strike layers from /api/feed.
     // Each row is clickable → flies the map to the facility and opens its existing
@@ -2248,8 +2402,10 @@
       list.innerHTML = feedEvents.map((e, i) => {
         const kindLabel = e.layer === "military"
           ? (MIL_CATEGORY_LABELS[e.kind] || e.kind || "military")
+          : e.layer === "logistics"
+          ? (LOGI_CATEGORY_LABELS[e.kind] || e.kind || "logistics")
           : (INFRA_KIND_LABELS[e.kind] || e.kind || "infra");
-        const layerColor = e.layer === "military" ? "#8a96aa" : "#e0a458";
+        const layerColor = e.layer === "military" ? "#8a96aa" : e.layer === "logistics" ? LOGI_TINT : "#e0a458";
         const kindChip = strikeChip(kindLabel, layerColor);
         const weaponLabel = WEAPON_LABELS[e.weapon];
         const weaponColor = e.weapon === "missile" ? "#ff4757" : e.weapon === "sabotage" ? "#b56cff" : "#ffa502";
@@ -2300,6 +2456,9 @@
       } else if (e.layer === "military") {
         const s = window.__militaryById && window.__militaryById[e.facility_id];
         if (s) openMilitaryPanel(s);
+      } else if (e.layer === "logistics") {
+        const s = window.__logisticsById && window.__logisticsById[e.facility_id];
+        if (s) openLogisticsPanel(s);
       }
     }
     // Feed show/hide toggle (chip in the layer bar).
@@ -2355,6 +2514,7 @@
         if (k === "attacks") toggleLayer(attacksLayer, layerVisible.attacks);
         if (k === "fires")   toggleLayer(firesLayer,   layerVisible.fires);
         if (k === "military") toggleLayer(militaryLayer, layerVisible.military);
+        if (k === "logistics") toggleLayer(logisticsLayer, layerVisible.logistics);
       });
     });
     function toggleLayer(layer, on) {
@@ -3111,6 +3271,7 @@
     loadImpact();
     loadFires();
     loadMilitary(); // curated military-industrial sites — static, no refresh
+    loadLogistics(); // curated rail/bridges/arsenals — static, no refresh
     loadFeed();     // live strike feed (left drawer) — auto-refreshes every 60 s
     setInterval(loadVessels, 15000);
     setInterval(loadStats, 30000);

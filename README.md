@@ -53,6 +53,7 @@ research. (Formerly “Shadow Fleet Tracker”.)
 - **Satellite corroboration (FIRMS)** — NASA near-real-time thermal anomalies as a toggle layer; strikes that coincide with a thermal anomaly at the facility (±1 day) are flagged satellite-corroborated (`/api/fires`).
 - **Oil-flow supply chain** — click any facility or a tanker bound for a Russian export terminal to trace refineries → trunk pipeline → export terminal, a curated source-cited link graph highlighted on the map (`/api/infra/:id/chain`).
 - **Military-industrial layer** — ~58 Russian defence-production sites (drone, missile, ammunition, explosives, armour, aviation, electronics, shipyard, other) with embedded strike histories and citation per record; 🎯 Military chip on the map, struck/not-struck distinction, bulk access via `/api/military`. Publicly-reported strikes only — absence of a recorded strike ≠ confirmed never hit.
+- **🚆 Logistics layer** — Russian rail and transport/storage infrastructure feeding the war effort: rail depots/junctions, bridges, and ammunition/weapons arsenals, each with embedded, cited strike histories (drone / missile / sabotage); 🚆 Logistics chip on the map (muted green/teal markers, category glyphs), struck/not-struck distinction, bulk access via `/api/logistics` (`?category=` filter). Loaded with `bun run load-logistics`. Publicly-reported strikes only — absence of a recorded strike ≠ confirmed never hit.
 
 See [`/methodology.html`](web/methodology.html) for the full algorithm + data-source
 documentation.
@@ -412,6 +413,7 @@ The news feeds' strike-keyword gate (GDELT/RSS) matches the drone/fire/attack co
 | `bun run load-infra-strikes` | (Re-)load strike events on infra objects (`data/infra-strikes.json`) |
 | `bun run load-infra-links` | (Re-)load oil-flow pipeline↔terminal↔refinery supply-chain links (`data/infra-links.json`) |
 | `bun run load-military` | (Re-)load military-industrial production sites + strike histories (`data/military-sites.json`) |
+| `bun run load-logistics` | (Re-)load logistics/transport sites — rail depots/junctions, bridges, arsenals + strike histories (`data/logistics-sites.json`) |
 | `bun run load-acled-strikes` | Weekly auto-feed of candidate strikes from ACLED (inserted as `auto · unverified`) |
 | `bun run load-gdelt-strikes [days]` | Weekly auto-feed of candidate strikes from GDELT news search, default 7-day window (inserted as `auto · unverified`) |
 | `bun run load-firms-triggered [days]` | FIRMS-triggered auto-feed: hot facilities (NASA thermal anomaly) get a targeted GDELT lookup, default 3-day window (inserted as `auto · unverified`, `🔥🛰 heat-triggered`) |
@@ -485,6 +487,7 @@ All free, license-compatible with non-commercial / journalistic use:
 | [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | Near-real-time VIIRS thermal anomalies, matched to facilities to corroborate strikes | Free (registered MAP_KEY); NASA open data |
 | Oil-flow links (curated) | Pipeline/terminal/refinery supply-chain links + terminal UN/LOCODEs, compiled from GEM / Transneft / press, cited per link (`data/infra-links.json`) | Curated from public sources (CC-BY-NC research use) |
 | Military-industrial sites (curated OSINT) | ~58 Russian defence-production sites with embedded strike histories, curated from public OSINT/press, cited per record (`data/military-sites.json`) | Curated from public sources (CC-BY-NC research use) |
+| Logistics / transport sites (curated OSINT) | Russian rail depots/junctions, bridges, and ammunition/weapons arsenals with embedded strike histories, curated from public OSINT/press, cited per record (`data/logistics-sites.json`) | Curated from public sources (CC-BY-NC research use) |
 
 Provenance & QA for the curated datasets (verification methodology, dropped records,
 known gaps): [`docs/superpowers/specs/2026-06-10-infra-attacks-data-report.md`](docs/superpowers/specs/2026-06-10-infra-attacks-data-report.md).
@@ -519,19 +522,21 @@ data/                   curated datasets (real, cited) + optional seed examples
   tanker-attacks.json     38 verified tanker-attack incidents
   infra-links.json        12 pipeline→terminal→refinery links (oil-flow supply chain)
   military-sites.json     ~58 defence-industrial production sites + strike histories (cited)
+  logistics-sites.json    rail depots/junctions, bridges, arsenals + strike histories (cited)
   *.seed.json             synthetic examples for optional recon loaders
-db/                     SQL migrations
+db/                     SQL migrations (incl. migrate-add-logistics.sql — logistics_sites table)
 docs/                   research artifacts, specs/plans, data QA reports, screenshots
 packages/api/
   package.json
   src/
-    cli/                bun run entrypoints (smoke, ingest, load-*)
+    cli/                bun run entrypoints (smoke, ingest, load-*; incl. load-logistics.ts)
     env.ts log.ts db.ts types.ts          base infrastructure
     ingestor.ts                            AIS WebSocket subscriber
     server.ts                              HTTP API + static serve
     risk.ts zones.ts ports.ts              domain logic
     infra-normalize.ts                     dataset validation/normalization (unit-tested)
     military-normalize.ts                  military-sites dataset validation/normalization (unit-tested)
+    logistics-normalize.ts                 logistics-sites dataset validation/normalization (unit-tested)
     impact-series.ts                       monthly time-series gap-filler (unit-tested)
 web/
   index.html            live-map dashboard
